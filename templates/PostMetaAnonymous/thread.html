@@ -1,0 +1,67 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div>
+    <ul>
+        <li>
+            <h2>{{ thread.title }}</h2>
+            {% autoescape on %}
+            <p>{{ thread.content|linebreaks|truncatewords:10 }}</p>
+            {% endautoescape %}
+            <p>Автор: <a href="{% url 'profile' thread.author.slug %}">{{ thread.author.nickname }}</a></p>
+            <form action="{% url 'thread_like' thread.slug %}">
+                {% csrf_token %}
+                {% if liked %}
+                    <button type="submit" class="btn btn-primary">Откинуться</button> - Вкинулось: {{ thread.likes.count }}
+                {% else %}
+                    <button type="submit" class="btn btn-primary">Вкинуться</button> - Вкинулось: {{ thread.likes.count }}
+                {% endif %}
+            </form>
+        </li>
+    </ul>
+    <div class="container m-3">
+        <form action="" method="POST">
+        {% csrf_token %}
+        <p><label for="{{ form.id_for_label }}">{{ form.label }}</label>{{ form }}</p>
+        <button type="submit" class="btn btn-primary">Добавить комментарий</button>
+    </form>
+    </div>
+    <div>
+        <div class="container m-3">
+            <h5>Комментарии</h5>
+            {% if not thread.comments.all %}
+            <p>Комментариев пока что нет. Вы можете стать первонахом</p>
+            {% endif %}
+            {% for i in thread.comments.all %}
+                <ul class="list-group">
+                    <li class="list-group-item m-1">
+                        <div>
+                            <img src="{% static i.author.profile_pic.url %}" class="rounded-circle" width="75" height="75">
+                            {{ i.author.nickname }}:
+                            {{ i.content }}
+                            {{ i.time_create|date:'d.m.Y G:i' }}
+                            {% if request.user.profile == i.author %}
+                            <a href="{% url 'delete_comment' i.id %}">Удалить комментарий</a>
+                            {% endif %}
+                            Вкинулось: {{ i.likes.count }}
+                            <form action="{% url 'comment_like' i.id %}">
+                                {% if thread.comments.likes %}
+                                    <button class="btn btn-primary">Откинуться</button>
+                                {% else %}
+                                    <button class="btn btn-primary">Вкинуться</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div>
+                            {{ i.replies }}
+                        </div>
+                    </li>
+                </ul>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

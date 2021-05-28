@@ -1,0 +1,27 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="m-2">
+        <form method="POST" enctype="multipart/form-data" class="form-group">
+            {% csrf_token %}
+            {% for i in form %}
+                <p><label for="{{ i.id_for_label }}">{{ i.label }}</label>{{ i }}</p>
+                <p>{{ i.errors }}</p>
+            {% endfor %}
+            <div class="text-center">
+                <div class="m-2">
+                    {% if messages %}
+                        {% for i in messages %}
+                            {{ i }}
+                        {% endfor %}
+                    {% endif %}
+                    <br>
+                </div>
+                <button type="submit" class="btn btn-primary center">Обновить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

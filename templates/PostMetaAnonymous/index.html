@@ -1,0 +1,24 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+            <div class="m-2">
+            <h2>Посты</h2>
+            {% for i in threads %}
+                <ul class="list-group">
+                    <li class="list-group-item m-1">
+                        <h2>{{ i.title }}</h2>
+                        {% autoescape on %}
+                        <p>{{ i.content|linebreaks|truncatewords:10 }}</p>
+                        {% endautoescape %}
+                        <p><a href="{% url 'thread' i.slug %}">Читать полностью</a></p>
+                        <p>Автор: <a href="{% url 'profile' i.author.slug %}">{{ i.author.nickname }}</a></p>
+                    </li>
+                </ul>
+            {% endfor %}
+            </div>
+    {% else %}
+        <a href="{% url 'login' %}">Войти</a>
+        <a href="{% url 'register' %}">Зарегистрироваться</a>
+    {% endif %}
+{% endblock %}
