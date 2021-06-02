@@ -3,22 +3,43 @@
 {% block content %}
     {% if request.user.is_authenticated %}
             <div class="m-2">
-            <h2>Посты</h2>
-            {% for i in threads %}
-                <ul class="list-group">
-                    <li class="list-group-item m-1">
-                        <h2>{{ i.title }}</h2>
-                        {% autoescape on %}
-                        <p>{{ i.content|linebreaks|truncatewords:10 }}</p>
-                        {% endautoescape %}
-                        <p><a href="{% url 'thread' i.slug %}">Читать полностью</a></p>
-                        <p>Автор: <a href="{% url 'profile' i.author.slug %}">{{ i.author.nickname }}</a></p>
-                    </li>
-                </ul>
-            {% endfor %}
+                <h2>Посты</h2>
+                {% for i in threads %}
+                    <ul class="list-group">
+                        <li class="list-group-item m-1">
+                            <h2>{{ i.title }}</h2>
+                            {% autoescape on %}
+                            <p>{{ i.content|linebreaks|truncatewords:10 }}</p>
+                            {% endautoescape %}
+                            <p><a href="{% url 'thread' i.slug %}">Читать полностью</a></p>
+                            <p>Автор: <a href="{% url 'profile' i.author.slug %}">{{ i.author.nickname }}</a></p>
+                        </li>
+                    </ul>
+                {% endfor %}
             </div>
     {% else %}
         <a href="{% url 'login' %}">Войти</a>
         <a href="{% url 'register' %}">Зарегистрироваться</a>
     {% endif %}
+{% endblock %}
+
+{% block js %}
+{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>#}
+{#    <script type="text/javascript">#}
+{#        $(document).ready(function () {#}
+{#            $("#ajax-button").click(function() {#}
+{#                $.ajax({#}
+{#                    type: 'GET',#}
+{#                    async: true,#}
+{#                    url: "{% url 'test' %}",#}
+{#                    data: "param1=value1&param2=value2;",#}
+{#                    success: function(data) {#}
+{#                        $("#more-text").append(data['text']);#}
+{##}
+{#                    },#}
+{#                    dataType: 'json',#}
+{#                });#}
+{#            });#}
+{#        });#}
+{#    </script>#}
 {% endblock %}

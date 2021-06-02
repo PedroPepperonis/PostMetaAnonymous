@@ -22,18 +22,21 @@ def validate_nickname(nickname):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE, error_messages={'unique': 'Уже существует'})
-    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?', null=True)
-    profile_pic = models.ImageField(null=True, blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
+    user = models.OneToOneField(User, on_delete=models.CASCADE, error_messages={'unique': 'Уже существует'})
+    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?')
+    rank = models.ForeignKey('Rank', on_delete=models.CASCADE, verbose_name='Ранг', blank=True, null=True)
+    experience = models.IntegerField(default=0, verbose_name='Опыт')
+    friends = models.ManyToManyField('Profile', blank=True)
+    profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
                                     validators=[validate_image])
-    username = models.CharField(max_length=30, verbose_name='Логин', unique=True, null=True,
+    username = models.CharField(max_length=30, verbose_name='Логин', unique=True,
                                 error_messages={'unique': 'Пользователь с таким логином уже сущесвует'})
-    nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False, null=True,
+    nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False,
                                 validators=[validate_nickname])
     slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
                             error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
     about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
-    password = models.CharField(max_length=32, verbose_name='Пароль', null=True)
+    password = models.CharField(max_length=32, verbose_name='Пароль')
 
     def __str__(self):
         return str(self.user)
@@ -41,6 +44,11 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'Профиль'
         verbose_name_plural = 'Профили'
+
+
+class FriendRequest(models.Model):
+    from_user = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='from_user')
+    to_user = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='to_user')
 
 
 class Snusoman(models.Model):
@@ -90,7 +98,6 @@ class Comment(models.Model):
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата написания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
     likes = models.ManyToManyField(User, related_name='comment_likes', blank=True)
-    replies = models.ForeignKey('Reply', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.content
@@ -107,18 +114,33 @@ class Comment(models.Model):
         ordering = ['-time_create']
 
 
-class Reply(models.Model):
-    author = models.ForeignKey('Profile', on_delete=models.CASCADE, null=True)
-    for_comment = models.ForeignKey('Comment', on_delete=models.CASCADE, null=True)
-    content = models.CharField(max_length=1000, unique=False, verbose_name='Ответ на комментарий', null=True)
-    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата ответа', null=True)
-    time_update = models.DateTimeField(auto_now=True, verbose_name='Дата изменения', null=True)
-    likes = models.ManyToManyField(User, null=True, blank=True)
+# class Reply(models.Model):
+#     author = models.ForeignKey('Profile', on_delete=models.CASCADE)
+#     for_comment = models.ForeignKey('Comment', on_delete=models.CASCADE)
+#     content = models.CharField(max_length=1000, unique=False, verbose_name='Ответ на комментарий')
+#     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата ответа')
+#     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
+#     likes = models.ManyToManyField(User, blank=True)
+#
+#     def __str__(self):
+#         return self.content
+#
+#     class Meta:
+#         verbose_name = 'Ответ на комментарий'
+#         verbose_name_plural = 'Ответы на комментарии'
+#         ordering = ['time_create']
+
+
+class Rank(models.Model):
+    name = models.CharField(max_length=255, unique=True, verbose_name='Ранг')
+    slug = models.SlugField(unique=True, verbose_name='URL')
+    experience = models.IntegerField(verbose_name='Опыт')
+    about = models.TextField(max_length=500, verbose_name='Описание', blank=True)
 
     def __str__(self):
-        return self.content
+        return self.name
 
     class Meta:
-        verbose_name = 'Ответ на комментарий'
-        verbose_name_plural = 'Ответы на комментарии'
-        ordering = ['time_create']
+        verbose_name = 'Ранг'
+        verbose_name_plural = 'Ранги'
+        ordering = ['experience']

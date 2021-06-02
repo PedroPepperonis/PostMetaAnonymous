@@ -11,14 +11,19 @@
             <p>{{ thread.content|linebreaks|truncatewords:10 }}</p>
             {% endautoescape %}
             <p>Автор: <a href="{% url 'profile' thread.author.slug %}">{{ thread.author.nickname }}</a></p>
-            <form action="{% url 'thread_like' thread.slug %}">
-                {% csrf_token %}
-                {% if liked %}
-                    <button type="submit" class="btn btn-primary">Откинуться</button> - Вкинулось: {{ thread.likes.count }}
-                {% else %}
-                    <button type="submit" class="btn btn-primary">Вкинуться</button> - Вкинулось: {{ thread.likes.count }}
-                {% endif %}
-            </form>
+            {% if request.user.profile.id != thread.author_id %}
+                <form action="{% url 'thread_like' thread.slug %}" method="POST">
+                    {% csrf_token %}
+                    {% if liked %}
+                        <button type="submit" class="btn btn-primary" id="like-button">Откинуться</button>
+                    {% else %}
+                        <button type="submit" class="btn btn-primary" id="like-button">Вкинуться</button>
+                    {% endif %}
+                </form>
+            {% endif %}
+            <div id="likes">
+                Вкинулось: {{ thread.likes.count }}
+            </div>
         </li>
     </ul>
     <div class="container m-3">
@@ -46,13 +51,11 @@
                             <a href="{% url 'delete_comment' i.id %}">Удалить комментарий</a>
                             {% endif %}
                             Вкинулось: {{ i.likes.count }}
+                        {% if request.user.profile.id != i.author.id %}
                             <form action="{% url 'comment_like' i.id %}">
-                                {% if thread.comments.likes %}
-                                    <button class="btn btn-primary">Откинуться</button>
-                                {% else %}
-                                    <button class="btn btn-primary">Вкинуться</button>
-                                {% endif %}
+                                <button class="btn btn-primary">Вкинуться</button>
                             </form>
+                        {% endif %}
                         </div>
                         <div>
                             {{ i.replies }}
@@ -63,5 +66,27 @@
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block js %}
+{#    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>#}
+{#    <script type="text/javascript">#}
+{#        $(document).ready(function() {#}
+{#            $('#like-form').click(function() {#}
+{#            $.ajax({#}
+{#                data: $(this).serialize(),#}
+{#                type: 'POST',#}
+{#                async: true,#}
+{#                url: "{% url 'thread_like' thread.slug %}",#}
+{#                success: function(data) {#}
+{#                    $('#likes').update('Вкинулось')#}
+{#                },#}
+{#                dataType: 'json',#}
+{#            })#}
+{#                return false#}
+{#        })#}
+{#        })#}
+{#    </script>#}
 
 {% endblock %}

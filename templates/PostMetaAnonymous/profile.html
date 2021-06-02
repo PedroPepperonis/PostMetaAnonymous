@@ -20,11 +20,20 @@
                       <p class="text-secondary mb-1">{{ user.about }}</p>
                         {% if request.user.profile.slug == user.slug %}
                       <h5><a href="{% url 'edit_profile' %}">Изменить профиль</a></h5>
+                        {% else %}
+                            <a href="{% url 'send_friend_request' user.id %}">Добавить в друзья</a>
                         {% endif %}
                     </div>
                   </div>
                 </div>
               </div>
+            <div class="container">
+                <div class="text-center">
+                    {% for i in friends_request %}
+                        <a href="{% url 'accept_friend_request' i.id %}">Добавить</a>
+                    {% endfor %}
+                </div>
+            </div>
             </div>
             <div class="col-md-8">
               <div class="card mb-3">
@@ -46,6 +55,24 @@
                       {{ user.snusoman }}
                     </div>
                   </div>
+                <hr>
+                <div class="row">
+                      <div class="col-sm-3">
+                          <h6 class="mb-0">Ранг</h6>
+                        </div>
+                      <div class="col-sm-9 text-secondary">
+                        {{ user.rank }}
+                    </div>
+                  </div>
+                    <hr>
+                <div class="row">
+                      <div class="col-sm-3">
+                          <h6 class="mb-0">Опыт</h6>
+                        </div>
+                      <div class="col-sm-9 text-secondary">
+                        {{ user.experience }}
+                    </div>
+                  </div>
                     <hr>
                   <div class="row">
                       <div class="col-sm-3">
@@ -59,7 +86,17 @@
                             <br>
                         {% endfor %}
                     </div>
-                  </div>
+                </div>
+                <hr>
+                  <div class="row">
+                      <div class="col-sm-3">
+                          <h6 class="mb-0">Друзья</h6>
+                        </div>
+                      <div class="col-sm-9 text-secondary">
+                        {% for i in user.friends.all %}
+                            <a href="{% url 'profile' i.slug %}">{{ i }}</a>
+                        {% endfor %}
+                    </div>
                 </div>
               </div>
             </div>

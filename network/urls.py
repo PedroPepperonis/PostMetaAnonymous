@@ -19,4 +19,7 @@ urlpatterns = [
     path('delete_comment/<int:id>', delete_comment, name='delete_comment'),
     path('like/<slug:url>', like, name='thread_like'),
     path('comment_like/<int:id>', comment_like, name='comment_like'),
+
+    path('add_friend/<int:userID>', send_friend_request, name='send_friend_request'),
+    path('accept_friend/<int:requestID>', accept_friend_request, name='accept_friend_request'),
 ]
