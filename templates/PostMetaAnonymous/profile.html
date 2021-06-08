@@ -30,7 +30,10 @@
             <div class="container">
                 <div class="text-center">
                     {% for i in friends_request %}
-                        <a href="{% url 'accept_friend_request' i.id %}">Добавить</a>
+                        {% if i.from_user_id != request.user.profile.id %}
+                            <p>Пользователь <a href="{% url 'profile' i.from_user.slug %}">{{ i.from_user.nickname }}</a> хочет добавить вас в друзья <a href="{% url 'accept_friend_request' i.id %}">добавить</a> или
+                                <a href="{% url 'decline_request' i.id %}">не добавлять</a></p>
+                        {% endif %}
                     {% endfor %}
                 </div>
             </div>
@@ -94,7 +97,7 @@
                         </div>
                       <div class="col-sm-9 text-secondary">
                         {% for i in user.friends.all %}
-                            <a href="{% url 'profile' i.slug %}">{{ i }}</a>
+                            <a href="{% url 'profile' i.slug %}">{{ i }}</a><a href="{% url 'delete_friend' i.id %}">удалить из друзей</a>
                         {% endfor %}
                     </div>
                 </div>

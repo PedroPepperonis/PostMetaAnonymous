@@ -26,11 +26,16 @@
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'new_thread' %}">Новый пост</a></li>
             <li><a class="dropdown-item" href="{% url 'threads' %}">Мои посты</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'logout' %}">Выйти из аккаунта</a></li>
           </ul>
         </li>
       </ul>
-      <span class="navbar-text"><a href="{% url 'logout' %}">Выйти</a></span>
     </div>
+      <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+    </form>
   </div>
 </nav>
 {% endif %}

@@ -2,10 +2,12 @@
 
 {% block content %}
 
-<form action="" method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Создать тред</button>
-</form>
+    <div class="container">
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Создать тред</button>
+        </form>
+    </div>
 
 {% endblock %}

@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages.views import SuccessMessageMixin
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, Http404
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import logout, authenticate, login
 from django.urls import reverse_lazy, reverse
@@ -8,7 +8,7 @@ from django.views import View
 from django.views.generic.edit import FormMixin
 from django.views.generic import DetailView, CreateView, ListView, UpdateView
 from django.contrib.auth.views import LoginView
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 
 from .forms import *
@@ -32,7 +32,7 @@ class ProfilePage(View):
             'title': Profile.objects.get(slug=url),
             'user': Profile.objects.get(slug=url),
             'comments': Comment.objects.filter(author__slug=url)[:5],
-            'friends_request': FriendRequest.objects.all(),
+            'friends_request': FriendRequest.objects.filter(to_user__slug=url),
         }
         return render(self.request, 'PostMetaAnonymous/profile.html', context)
 
@@ -126,15 +126,19 @@ class EditPage(SuccessMessageMixin, UpdateView):
     def form_valid(self, form):
         messages.add_message(self.request, messages.SUCCESS, 'Данные профиля успешно обновлены')
         form.save()
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        return self.request.path
+        return redirect(self.request.path)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Редактирование профиля'
         return context
+
+
+class Searh(ListView):
+    model = Profile
+
+
+
 
 
 class RegisterPage(CreateView):
@@ -269,8 +273,8 @@ def send_friend_request(request, userID):
     to_user = get_object_or_404(Profile, id=userID)
     friend_request, created = FriendRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
     if created:
-        return HttpResponseRedirect(reverse('home'))
-    return HttpResponse('error')
+        return HttpResponseRedirect(reverse('profile', args=[str(to_user.slug)]))
+    return HttpResponse('Не удалось отправить запрос в друзья')
 
 
 @login_required
@@ -280,5 +284,22 @@ def accept_friend_request(request, requestID):
         friend_request.to_user.friends.add(friend_request.from_user)
         friend_request.from_user.friends.add(friend_request.to_user)
         friend_request.delete()
-        return HttpResponse('friend request accepted')
-    return HttpResponse('friend request not accepted')
+        return HttpResponseRedirect(reverse('profile', args=[str(request.user.profile.slug)]))
+    return HttpResponse('Не удалось принять запрос в друзья')
+
+
+@login_required
+def decline_friend_request(request, requestID):
+    friend_request = get_object_or_404(FriendRequest, id=requestID)
+    if friend_request.delete():
+        return HttpResponseRedirect(reverse('profile', args=[str(request.user.profile.slug)]))
+    return HttpResponse('Не удалось отменить запрос в друзья')
+
+
+@login_required
+def delete_friend(request, userID):
+    friend = get_object_or_404(Profile, id=userID)
+    user = get_object_or_404(Profile, id=request.user.profile.id)
+    friend.friends.remove(user)
+    user.friends.remove(friend)
+    return HttpResponseRedirect(reverse('profile', args=[str(request.user.profile.slug)]))

@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 
 from .models import *
@@ -48,7 +48,8 @@ class ThreadForm(forms.ModelForm):
         model = Thread
         fields = ['title', 'content']
         widgets = {
-            'content': forms.Textarea(attrs={'cols': 50, 'rows': '10', 'style': 'resize:none;'})
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'cols': 50, 'rows': '10', 'style': 'resize:none;', 'class': 'form-control'})
         }
 
 
