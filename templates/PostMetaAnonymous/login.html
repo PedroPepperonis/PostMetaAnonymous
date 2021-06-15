@@ -10,7 +10,7 @@
       <form class="px-4 py-3" method="POST">
       {% csrf_token %}
         <div class="form-group">
-            <p><label for="{{ form.id_for_label }}">Логин</label>{{ form.username }}</p>
+            <p><label for="{{ form.id_for_label }}">Email</label>{{ form.username }}</p>
             <p><label for="{{ form.id_for_label }}">Пароль</label>{{ form.password }}</p>
         </div>
         <button type="submit" class="btn btn-primary">Войти</button>

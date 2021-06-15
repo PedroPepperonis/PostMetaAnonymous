@@ -18,10 +18,10 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item dropdown navbar-text">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            {{ request.user.profile.nickname }}
+            {{ request.user.nickname }}
           </a>
           <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <li><a class="dropdown-item" href="{% url 'profile' request.user.profile.slug %}">Профиль</a></li>
+            <li><a class="dropdown-item" href="{% url 'profile' request.user.slug %}">Профиль</a></li>
             <li><a class="dropdown-item" href="{% url 'edit_profile' %}">Редактировать профиль</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'new_thread' %}">Новый пост</a></li>

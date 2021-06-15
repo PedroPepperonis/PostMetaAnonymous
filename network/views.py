@@ -8,7 +8,7 @@ from django.views import View
 from django.views.generic.edit import FormMixin
 from django.views.generic import DetailView, CreateView, ListView, UpdateView
 from django.contrib.auth.views import LoginView
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 
 from .forms import *
@@ -51,13 +51,13 @@ class NewThread(CreateView):
     success_url = reverse_lazy('home')
 
     def get_object(self, queryset=None):
-        return self.request.user.profile
+        return self.request.user
 
     def post(self, request, *args, **kwargs):
         form = ThreadForm(self.request.POST)
         if form.is_valid():
             new_thread = Thread.objects.create(
-                author=self.request.user.profile,
+                author=self.request.user,
                 title=form.cleaned_data['title'],
                 content=form.cleaned_data['content']
             )
@@ -92,7 +92,7 @@ class ShowThread(FormMixin, DetailView):
         form = CommentForm(self.request.POST)
         if form.is_valid():
             new_comment = Comment.objects.create(
-                author=self.request.user.profile,
+                author=self.request.user,
                 content=form.cleaned_data['content'],
                 thread=Thread.objects.get(slug=url)
             )
@@ -106,7 +106,7 @@ class MyThreadsPage(ListView):
     context_object_name = 'threads'
 
     def get_queryset(self):
-        threads = Thread.objects.filter(author=self.request.user.profile)
+        threads = Thread.objects.filter(author=self.request.user)
         return threads
 
     def get_context_data(self, **kwargs):
@@ -121,7 +121,7 @@ class EditPage(SuccessMessageMixin, UpdateView):
     slug_url_kwarg = 'url'
 
     def get_object(self, queryset=None):
-        return self.request.user.profile
+        return self.request.user
 
     def form_valid(self, form):
         messages.add_message(self.request, messages.SUCCESS, 'Данные профиля успешно обновлены')
@@ -134,40 +134,10 @@ class EditPage(SuccessMessageMixin, UpdateView):
         return context
 
 
-class Searh(ListView):
-    model = Profile
-
-
-
-
-
 class RegisterPage(CreateView):
     form_class = RegisterForm
     template_name = 'PostMetaAnonymous/register.html'
-
-    def post(self, request, *args, **kwargs):
-        form = RegisterForm(self.request.POST)
-        if form.is_valid():
-            new_user = User.objects.create(
-                username=form.cleaned_data['username'],
-                password=make_password(form.cleaned_data['password']),
-            )
-            new_user.save()
-
-            new_profile = Profile.objects.create(
-                user=User.objects.get(username=form.cleaned_data['username']),
-                username=form.cleaned_data['username'],
-                nickname=form.cleaned_data['username'],
-                slug=slugify(form.cleaned_data['username']),
-                snusoman=form.cleaned_data['snusoman'],
-                password=make_password(form.cleaned_data['password']),
-            )
-            new_profile.save()
-            user = authenticate(username=form.cleaned_data['username'], password=form.cleaned_data['password'])
-            login(request, user)
-            return redirect('profile', form.cleaned_data['username'])
-        else:
-            return render(self.request, 'PostMetaAnonymous/register.html', {'form': form})
+    success_url = reverse_lazy('login')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

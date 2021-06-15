@@ -1,8 +1,13 @@
-from django.contrib.auth.base_user import AbstractBaseUser
+import random
+
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from pytils.translit import slugify
+
+
+ANONYMOUS_NAME = ('anonymous', 'anonym', 'анонимус', 'аноним')
 
 
 def validate_image(image):
@@ -13,33 +18,82 @@ def validate_image(image):
 
 
 def validate_nickname(nickname):
-    anonymous_name = ('anonymous', 'anonym', 'анонимус', 'аноним')
 
-    for i in range(0, len(anonymous_name)):
-        if nickname.lower().find(anonymous_name[i]) != -1:
+    for i in range(0, len(ANONYMOUS_NAME)):
+        if nickname.lower().find(ANONYMOUS_NAME[i]) != -1:
             return 0
     raise ValidationError(f'В вашем позывном нет anonymous, anonym, анонимус, или аноним.')
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, error_messages={'unique': 'Уже существует'})
+class ProfileManager(BaseUserManager):
+    def create_user(self, email, username, password=None):
+        if not username:
+            raise ValueError('Должен быть логин')
+        user = self.model(
+            email=self.normalize_email(email),
+            username=username,
+        )
+        user.set_password(password)
+        user.snusoman_id = 1
+        user.slug = 'testpassed'
+        user.save()
+        return user
+
+    def create_superuser(self, email, username, password):
+        user = self.create_user(
+            email=self.normalize_email(email),
+            username=username,
+            password=password,
+        )
+        user.is_admin = True
+        user.is_staff = True
+        user.is_superuser = True
+        user.snusoman_id = 1
+        user.save()
+        return user
+
+
+class Profile(AbstractBaseUser):
+    username = models.CharField(max_length=30, verbose_name='Логин', unique=True)
+    email = models.EmailField(max_length=30, verbose_name='Email', unique=True)
+    nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False,
+                                validators=[validate_nickname])
+    slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
+                            error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
+    about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
     snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?')
     rank = models.ForeignKey('Rank', on_delete=models.CASCADE, verbose_name='Ранг', blank=True, null=True)
     experience = models.IntegerField(default=0, verbose_name='Опыт')
     friends = models.ManyToManyField('Profile', blank=True)
     profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
                                     validators=[validate_image])
-    username = models.CharField(max_length=30, verbose_name='Логин', unique=True,
-                                error_messages={'unique': 'Пользователь с таким логином уже сущесвует'})
-    nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False,
-                                validators=[validate_nickname])
-    slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
-                            error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
-    about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
-    password = models.CharField(max_length=32, verbose_name='Пароль')
+    is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+
+    objects = ProfileManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
-        return str(self.user)
+        return str(self.username)
+
+    def has_perm(self, perm, obj=None):
+        return self.is_admin
+
+    def has_module_perms(self, app_label):
+        return True
+
+    def save(self, *args, **kwargs):
+        value = self.username
+        self.slug = slugify(value)
+
+        self.nickname = self.username + ' {}'.format(random.choice(ANONYMOUS_NAME))
+
+        self.rank_id = 1
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Профиль'
@@ -72,7 +126,7 @@ class Thread(models.Model):
     time_update = models.DateTimeField(auto_now=True, verbose_name='Время обновления')
     is_important = models.BooleanField(default=False, verbose_name='Закрепить?')
     author = models.ForeignKey('Profile', on_delete=models.CASCADE, verbose_name='Автор')
-    likes = models.ManyToManyField(User, related_name='thread_likes')
+    likes = models.ManyToManyField('Profile', related_name='thread_likes')
 
     def __str__(self):
         return self.title
@@ -97,7 +151,7 @@ class Comment(models.Model):
     content = models.CharField(max_length=1000, unique=False, verbose_name='Комментарий')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата написания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
-    likes = models.ManyToManyField(User, related_name='comment_likes', blank=True)
+    likes = models.ManyToManyField(Profile, related_name='comment_likes', blank=True)
 
     def __str__(self):
         return self.content

@@ -1,27 +1,43 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UsernameField
 
 from .models import *
 
 
-class RegisterForm(forms.ModelForm):
+class RegisterForm(UserCreationForm):
+    password1 = forms.CharField(
+        label='Пароль',
+        widget=forms.PasswordInput(attrs={'class':'form-control'})
+    )
+    password2 = forms.CharField(
+        label='Подтвердите пароль',
+        widget=forms.PasswordInput(attrs={'class':'form-control'})
+    )
+
+    error_messages = {
+        'Пароли не совпадают'
+    }
 
     class Meta:
         model = Profile
-        fields = ['username', 'password', 'snusoman']
+        fields = ['email', 'username', 'snusoman', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
-            'password': forms.PasswordInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'snusoman': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
 class LoginForm(AuthenticationForm):
+    password = forms.CharField(
+        label='Пароль',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
+    )
+    username = UsernameField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Profile
-        fields = ['username', 'password']
+        fields = ['email', 'password']
 
 
 class ProfileChangeForm(forms.ModelForm):
