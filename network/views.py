@@ -239,7 +239,7 @@ def down_user_rank(request, id):
 
 @login_required
 def send_friend_request(request, userID):
-    from_user = request.user.profile
+    from_user = request.user
     to_user = get_object_or_404(Profile, id=userID)
     friend_request, created = FriendRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
     if created:
@@ -250,11 +250,11 @@ def send_friend_request(request, userID):
 @login_required
 def accept_friend_request(request, requestID):
     friend_request = get_object_or_404(FriendRequest, id=requestID)
-    if friend_request.to_user == request.user.profile:
+    if friend_request.to_user == request.user:
         friend_request.to_user.friends.add(friend_request.from_user)
         friend_request.from_user.friends.add(friend_request.to_user)
         friend_request.delete()
-        return HttpResponseRedirect(reverse('profile', args=[str(request.user.profile.slug)]))
+        return HttpResponseRedirect(reverse('profile', args=[str(request.user.slug)]))
     return HttpResponse('Не удалось принять запрос в друзья')
 
 
@@ -262,14 +262,14 @@ def accept_friend_request(request, requestID):
 def decline_friend_request(request, requestID):
     friend_request = get_object_or_404(FriendRequest, id=requestID)
     if friend_request.delete():
-        return HttpResponseRedirect(reverse('profile', args=[str(request.user.profile.slug)]))
+        return HttpResponseRedirect(reverse('profile', args=[str(request.user.slug)]))
     return HttpResponse('Не удалось отменить запрос в друзья')
 
 
 @login_required
 def delete_friend(request, userID):
     friend = get_object_or_404(Profile, id=userID)
-    user = get_object_or_404(Profile, id=request.user.profile.id)
+    user = get_object_or_404(Profile, id=request.user.id)
     friend.friends.remove(user)
     user.friends.remove(friend)
-    return HttpResponseRedirect(reverse('profile', args=[str(request.user.profile.slug)]))
+    return HttpResponseRedirect(reverse('profile', args=[str(request.user.slug)]))

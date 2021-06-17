@@ -11,7 +11,7 @@
             <p>{{ thread.content|linebreaks|truncatewords:10 }}</p>
             {% endautoescape %}
             <p>Автор: <a href="{% url 'profile' thread.author.slug %}">{{ thread.author.nickname }}</a></p>
-            {% if request.user.profile.id != thread.author_id %}
+            {% if request.user.id != thread.author_id %}
                 <form action="{% url 'thread_like' thread.slug %}" method="POST">
                     {% csrf_token %}
                     {% if liked %}
@@ -43,19 +43,25 @@
                 <ul class="list-group">
                     <li class="list-group-item m-1">
                         <div>
-                            <img src="{% static i.author.profile_pic.url %}" class="rounded-circle" width="75" height="75">
+                            {% if i.author.profile_pic %}
+                                <img src="{% static i.author.profile_pic.url %}" class="rounded-circle" width="75" height="75">
+                            {% endif %}
                             {{ i.author.nickname }}:
                             {{ i.content }}
                             {{ i.time_create|date:'d.m.Y G:i' }}
-                            {% if request.user.profile == i.author %}
+                            {% if request.user == i.author %}
                             <a href="{% url 'delete_comment' i.id %}">Удалить комментарий</a>
                             {% endif %}
                             Вкинулось: {{ i.likes.count }}
-                        {% if request.user.profile.id != i.author.id %}
+                        {% if request.user.id != i.author.id %}
                             <form action="{% url 'comment_like' i.id %}">
                                 <button class="btn btn-primary">Вкинуться</button>
                             </form>
                         {% endif %}
+                        {% for comment in comments %}
+                            comment
+                        {% endfor %}
+
                         </div>
                         <div>
                             {{ i.replies }}

@@ -7,22 +7,11 @@ from django.core.exceptions import ValidationError
 from pytils.translit import slugify
 
 
-ANONYMOUS_NAME = ('anonymous', 'anonym', 'анонимус', 'аноним')
-
-
 def validate_image(image):
     file_size = image.file.size
     limit_mb = 2
     if file_size > limit_mb * 1024 * 1024:
         raise ValidationError('Максимальный размер фото - 2мб')
-
-
-def validate_nickname(nickname):
-
-    for i in range(0, len(ANONYMOUS_NAME)):
-        if nickname.lower().find(ANONYMOUS_NAME[i]) != -1:
-            return 0
-    raise ValidationError(f'В вашем позывном нет anonymous, anonym, анонимус, или аноним.')
 
 
 class ProfileManager(BaseUserManager):
@@ -34,8 +23,7 @@ class ProfileManager(BaseUserManager):
             username=username,
         )
         user.set_password(password)
-        user.snusoman_id = 1
-        user.slug = 'testpassed'
+        user.rank_id = 1
         user.save()
         return user
 
@@ -56,8 +44,7 @@ class ProfileManager(BaseUserManager):
 class Profile(AbstractBaseUser):
     username = models.CharField(max_length=30, verbose_name='Логин', unique=True)
     email = models.EmailField(max_length=30, verbose_name='Email', unique=True)
-    nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False,
-                                validators=[validate_nickname])
+    nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False)
     slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
                             error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
     about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
@@ -89,10 +76,8 @@ class Profile(AbstractBaseUser):
     def save(self, *args, **kwargs):
         value = self.username
         self.slug = slugify(value)
-
-        self.nickname = self.username + ' {}'.format(random.choice(ANONYMOUS_NAME))
-
-        self.rank_id = 1
+        if not self.nickname:
+            self.nickname = self.username
         super().save(*args, **kwargs)
 
     class Meta:
@@ -126,7 +111,7 @@ class Thread(models.Model):
     time_update = models.DateTimeField(auto_now=True, verbose_name='Время обновления')
     is_important = models.BooleanField(default=False, verbose_name='Закрепить?')
     author = models.ForeignKey('Profile', on_delete=models.CASCADE, verbose_name='Автор')
-    likes = models.ManyToManyField('Profile', related_name='thread_likes')
+    likes = models.ManyToManyField(Profile, blank=True, related_name='thread_likes')
 
     def __str__(self):
         return self.title
@@ -151,7 +136,7 @@ class Comment(models.Model):
     content = models.CharField(max_length=1000, unique=False, verbose_name='Комментарий')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата написания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
-    likes = models.ManyToManyField(Profile, related_name='comment_likes', blank=True)
+    likes = models.ManyToManyField(Profile, blank=True, related_name='comment_likes')
 
     def __str__(self):
         return self.content
