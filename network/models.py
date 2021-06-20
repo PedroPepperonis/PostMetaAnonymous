@@ -21,7 +21,6 @@ class ProfileManager(BaseUserManager):
             username=username,
         )
         user.set_password(password)
-        user.rank_id = 1
         user.save()
         return user
 
@@ -34,7 +33,6 @@ class ProfileManager(BaseUserManager):
         user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
-        user.snusoman_id = 1
         user.save()
         return user
 
@@ -46,7 +44,7 @@ class Profile(AbstractBaseUser):
     slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
                             error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
     about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
-    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?')
+    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?', blank=True)
     rank = models.ForeignKey('Rank', on_delete=models.CASCADE, verbose_name='Ранг', blank=True, null=True)
     experience = models.IntegerField(default=0, verbose_name='Опыт')
     friends = models.ManyToManyField('Profile', blank=True)
