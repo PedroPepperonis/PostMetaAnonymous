@@ -48,7 +48,7 @@ class Profile(AbstractBaseUser):
     rank = models.ForeignKey('Rank', on_delete=models.CASCADE, verbose_name='Ранг', blank=True, null=True)
     experience = models.IntegerField(default=0, verbose_name='Опыт')
     friends = models.ManyToManyField('Profile', blank=True)
-    profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
+    profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='/profile_pic/',
                                     validators=[validate_image])
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
