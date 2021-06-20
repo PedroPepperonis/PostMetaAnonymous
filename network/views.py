@@ -2,13 +2,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.messages.views import SuccessMessageMixin
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
-from django.contrib.auth import logout, authenticate, login
+from django.contrib.auth import logout
 from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.views.generic.edit import FormMixin
 from django.views.generic import DetailView, CreateView, ListView, UpdateView
 from django.contrib.auth.views import LoginView
-from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 
 from .forms import *

@@ -1,5 +1,3 @@
-import random
-
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
 from django.contrib.auth.models import User
@@ -151,23 +149,6 @@ class Comment(models.Model):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ['-time_create']
-
-
-# class Reply(models.Model):
-#     author = models.ForeignKey('Profile', on_delete=models.CASCADE)
-#     for_comment = models.ForeignKey('Comment', on_delete=models.CASCADE)
-#     content = models.CharField(max_length=1000, unique=False, verbose_name='Ответ на комментарий')
-#     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата ответа')
-#     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
-#     likes = models.ManyToManyField(User, blank=True)
-#
-#     def __str__(self):
-#         return self.content
-#
-#     class Meta:
-#         verbose_name = 'Ответ на комментарий'
-#         verbose_name_plural = 'Ответы на комментарии'
-#         ordering = ['time_create']
 
 
 class Rank(models.Model):
