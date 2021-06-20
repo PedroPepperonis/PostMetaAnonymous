@@ -33,6 +33,7 @@ class ProfileManager(BaseUserManager):
         user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
+        user.snusoman_id = 1
         user.save()
         return user
 
