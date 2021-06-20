@@ -11,7 +11,7 @@
                 <div class="card-body">
                   <div class="d-flex flex-column align-items-center text-center">
                   {% if user.profile_pic.url is not None %}
-                      <img src="{{ user.profile_pic.url }}" class="rounded-circle" width="200" height="200">
+                      <img src="{% static user.profile_pic.url %}" class="rounded-circle" width="200" height="200">
                   {% else %}
                       <p>Нет аватара</p>
                   {% endif %}
