@@ -1,9 +1,8 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import *
+from .models import User, Snusoman, Thread, Comment, Rank
 
 
-class ProfileAdmin(UserAdmin):
+class UserAdmin(admin.ModelAdmin):
     list_display = ('email', 'username', 'nickname', 'is_admin', 'is_staff')
     readonly_fields = ('password', )
 
@@ -26,9 +25,8 @@ class RankAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
-admin.site.register(Profile, ProfileAdmin)
+admin.site.register(User, UserAdmin)
 admin.site.register(Snusoman, SnusomanAdmin)
 admin.site.register(Thread, ThreadAdmin)
 admin.site.register(Comment)
 admin.site.register(Rank, RankAdmin)
-admin.site.register(FriendRequest)

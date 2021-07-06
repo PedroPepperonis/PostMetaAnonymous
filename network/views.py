@@ -1,17 +1,18 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.messages.views import SuccessMessageMixin
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth import logout
-from django.urls import reverse_lazy, reverse
-from django.views import View
-from django.views.generic.edit import FormMixin
-from django.views.generic import DetailView, CreateView, ListView, UpdateView
 from django.contrib.auth.views import LoginView
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.views import View
+from django.views.generic import DetailView, CreateView, ListView, UpdateView
+from django.views.generic.edit import FormMixin
+from django.shortcuts import redirect, render, get_object_or_404
+from django.http import HttpResponseRedirect, JsonResponse
+from django.urls import reverse_lazy, reverse
+from itertools import chain
 
-from .forms import *
-from .models import *
+from friendship.models import Friend, FriendshipRequest
+
+from .forms import RegisterForm, LoginForm, ProfileChangeForm, ThreadForm, CommentForm
+from .models import User, Thread, Comment, Rank
 
 
 class HomePage(ListView):
@@ -25,15 +26,32 @@ class HomePage(ListView):
         return context
 
 
-class ProfilePage(View):
-    def get(self, request, url,  *args, **kwargs):
-        context = {
-            'title': Profile.objects.get(slug=url),
-            'user': Profile.objects.get(slug=url),
-            'comments': Comment.objects.filter(author__slug=url)[:5],
-            'friends_request': FriendRequest.objects.filter(to_user__slug=url),
-        }
-        return render(self.request, 'PostMetaAnonymous/profile.html', context)
+class UserPage(DetailView):
+    model = User
+    template_name = 'PostMetaAnonymous/profile.html'
+    context_object_name = 'user'
+
+    def get_object(self, queryset=None):
+        return User.objects.get(slug=self.kwargs['url'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = get_object_or_404(User, slug=self.kwargs['url'])
+        context['title'] = self.request.user.nickname
+        context['comments'] = Comment.objects.filter(author=self.request.user)[:5]
+        context['friends'] = Friend.objects.friends(user)
+        context['friend_requests'] = Friend.objects.unread_requests(self.request.user)
+        return context
+
+
+class FriendsListPage(ListView):
+    model = Friend
+    template_name = 'PostMetaAnonymous/friends_list.html'
+    context_object_name = 'friends'
+
+    def get_queryset(self, *args, **kwargs):
+        user = get_object_or_404(User, slug=self.kwargs['url'])
+        return Friend.objects.friends(user)
 
 
 class EditThread(UpdateView):
@@ -99,14 +117,13 @@ class ShowThread(FormMixin, DetailView):
             return redirect(self.request.path)
 
 
-class MyThreadsPage(ListView):
+class UserThreads(ListView):
     model = Thread
     template_name = 'PostMetaAnonymous/user_threads.html'
     context_object_name = 'threads'
 
     def get_queryset(self):
-        threads = Thread.objects.filter(author=self.request.user)
-        return threads
+        return Thread.objects.filter(author=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -114,7 +131,7 @@ class MyThreadsPage(ListView):
         return context
 
 
-class EditPage(SuccessMessageMixin, UpdateView):
+class EditPage(UpdateView):
     form_class = ProfileChangeForm
     template_name = 'PostMetaAnonymous/edit_profile.html'
     slug_url_kwarg = 'url'
@@ -123,9 +140,8 @@ class EditPage(SuccessMessageMixin, UpdateView):
         return self.request.user
 
     def form_valid(self, form):
-        messages.add_message(self.request, messages.SUCCESS, 'Данные профиля успешно обновлены')
         form.save()
-        return redirect(self.request.path)
+        return JsonResponse({'message': 'Данные профиля успешно обновлены'}, status=200)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -154,6 +170,22 @@ class LoginPage(LoginView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Вход'
+        return context
+
+
+class SearchPage(ListView):
+    template_name = 'PostMetaAnonymous/search.html'
+    context_object_name = 'results'
+
+    def get_queryset(self):
+        threads = Thread.objects.filter(title__icontains=self.request.GET.get('query'))
+        users = User.objects.filter(nickname__icontains=self.request.GET.get('query'))
+        results = chain(users, threads)
+        return results
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = self.request.GET.get('query')
         return context
 
 
@@ -212,7 +244,7 @@ def logout_user(request):
 @login_required
 def up_user_rank(request, id):
     rank = Rank.objects.all()
-    liked_user = get_object_or_404(Profile, id=id)
+    liked_user = get_object_or_404(User, id=id)
     liked_user.experience += 1
     for i in rank:
         if liked_user.experience < i.experience:
@@ -226,7 +258,7 @@ def up_user_rank(request, id):
 def down_user_rank(request, id):
     rank = Rank.objects.all()
 
-    liked_user = get_object_or_404(Profile, id=id)
+    liked_user = get_object_or_404(User, id=id)
     liked_user.experience -= 1
     for i in rank:
         if liked_user.experience < i.experience:
@@ -238,37 +270,26 @@ def down_user_rank(request, id):
 
 @login_required
 def send_friend_request(request, userID):
-    from_user = request.user
-    to_user = get_object_or_404(Profile, id=userID)
-    friend_request, created = FriendRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
-    if created:
-        return HttpResponseRedirect(reverse('profile', args=[str(to_user.slug)]))
-    return HttpResponse('Не удалось отправить запрос в друзья')
+    to_user = get_object_or_404(User, id=userID)
+    Friend.objects.add_friend(request.user, to_user)
+    return JsonResponse({'success': 'Success'}, status=200)
 
 
 @login_required
 def accept_friend_request(request, requestID):
-    friend_request = get_object_or_404(FriendRequest, id=requestID)
-    if friend_request.to_user == request.user:
-        friend_request.to_user.friends.add(friend_request.from_user)
-        friend_request.from_user.friends.add(friend_request.to_user)
-        friend_request.delete()
-        return HttpResponseRedirect(reverse('profile', args=[str(request.user.slug)]))
-    return HttpResponse('Не удалось принять запрос в друзья')
+    friend_request = FriendshipRequest.objects.get(id=requestID)
+    friend_request.accept()
+    return redirect('home')
 
 
 @login_required
 def decline_friend_request(request, requestID):
-    friend_request = get_object_or_404(FriendRequest, id=requestID)
-    if friend_request.delete():
-        return HttpResponseRedirect(reverse('profile', args=[str(request.user.slug)]))
-    return HttpResponse('Не удалось отменить запрос в друзья')
+    friend_request = FriendshipRequest.objects.get(id=requestID)
+    friend_request.cancel()
+    return redirect('home')
 
 
 @login_required
 def delete_friend(request, userID):
-    friend = get_object_or_404(Profile, id=userID)
-    user = get_object_or_404(Profile, id=request.user.id)
-    friend.friends.remove(user)
-    user.friends.remove(friend)
-    return HttpResponseRedirect(reverse('profile', args=[str(request.user.slug)]))
+    Friend.objects.remove_friend(userID, request.user)
+    return redirect('home')

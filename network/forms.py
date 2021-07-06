@@ -1,17 +1,17 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UsernameField
 
-from .models import *
+from .models import User, Thread, Comment
 
 
 class RegisterForm(UserCreationForm):
     password1 = forms.CharField(
         label='Пароль',
-        widget=forms.PasswordInput(attrs={'class':'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
     password2 = forms.CharField(
         label='Подтвердите пароль',
-        widget=forms.PasswordInput(attrs={'class':'form-control'})
+        widget=forms.PasswordInput(attrs={'class': 'form-control'})
     )
 
     error_messages = {
@@ -19,7 +19,7 @@ class RegisterForm(UserCreationForm):
     }
 
     class Meta:
-        model = Profile
+        model = User
         fields = ['email', 'username', 'snusoman', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
@@ -36,7 +36,7 @@ class LoginForm(AuthenticationForm):
     username = UsernameField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
 
     class Meta:
-        model = Profile
+        model = User
         fields = ['email', 'password']
 
 
@@ -47,12 +47,11 @@ class ProfileChangeForm(forms.ModelForm):
         self.fields['snusoman'].empty_label = 'Снюсоед не выбран'
 
     class Meta:
-        model = Profile
-        fields = ['nickname', 'slug', 'snusoman', 'profile_pic', 'about']
+        model = User
+        fields = ['nickname', 'snusoman', 'profile_pic', 'about']
         widgets = {
             'about': forms.Textarea(attrs={'class': 'form-control', 'style': 'resize:none;'}),
             'nickname': forms.TextInput(attrs={'class': 'form-control'}),
-            'slug': forms.TextInput(attrs={'class': 'form-control'}),
             'profile_pic': forms.FileInput(attrs={'class': 'form-control'}),
             'snusoman': forms.Select(attrs={'class': 'form-control'}),
         }
@@ -65,7 +64,7 @@ class ThreadForm(forms.ModelForm):
         fields = ['title', 'content']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
-            'content': forms.Textarea(attrs={'cols': 50, 'rows': '10', 'style': 'resize:none;', 'class': 'form-control'})
+            'content': forms.Textarea(attrs={'cols': 50, 'rows': '10', 'style': 'resize:none;', 'class': 'form-control'}),
         }
 
 

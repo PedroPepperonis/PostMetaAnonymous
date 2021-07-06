@@ -1,0 +1,39 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+{% load class_name %}
+{% load static %}
+
+{% block content %}
+
+    {% if not results %}
+        <p>Не удалось ничего найти по запросу: {{ request.GET.query }}</p>
+    {% endif %}
+    {% for i in results %}
+        {% with i|class_name as class %}
+            {% if class == 'User' %}
+                <a href="{% url 'profile' i.slug %}">
+                    <ul class="list-group">
+                        <li class="list-group-item m-1">
+                            {% if i.profile_pic.url is not None %}
+                                <img src="{% static i.profile_pic.url %}" class="rounded-circle" width="70" height="70">
+                            {% endif %}
+                            <h2>{{ i.nickname }}</h2>
+                        </li>
+                    </ul>
+                </a>
+            {% endif %}
+            {% if class == 'Thread' %}
+                <a href="{% url 'thread' i.slug %}">
+                    <ul class="list-group">
+                        <li class="list-group-item m-1">
+                            <h2>{{ i.title }}</h2>
+                            {% autoescape on %}
+                            <p>{{ i.content|linebreaks|truncatewords:10 }}</p>
+                            {% endautoescape %}
+                        </li>
+                    </ul>
+                </a>
+            {% endif %}
+        {% endwith %}
+    {% endfor %}
+
+{% endblock %}

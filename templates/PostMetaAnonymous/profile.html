@@ -19,9 +19,9 @@
                       <h4>{{ user.nickname }}</h4>
                       <p class="text-secondary mb-1">{{ user.about }}</p>
                         {% if request.user.slug == user.slug %}
-                      <h5><a href="{% url 'edit_profile' %}">Изменить профиль</a></h5>
+                      <h5><a href="{% url 'edit_profile' request.user.slug %}">Изменить профиль</a></h5>
                         {% else %}
-                            <a href="{% url 'send_friend_request' user.id %}">Добавить в друзья</a>
+                            <a id="friend_request" href="{% url 'send_friend_request' user.id %}">Добавить в друзья</a>
                         {% endif %}
                     </div>
                   </div>
@@ -29,12 +29,12 @@
               </div>
             <div class="container">
                 <div class="text-center">
-                    {% for i in friends_request %}
-                        {% if i.from_user_id != request.user.profile.id %}
-                            <p>Пользователь <a href="{% url 'profile' i.from_user.slug %}">{{ i.from_user.nickname }}</a> хочет добавить вас в друзья <a href="{% url 'accept_friend_request' i.id %}">добавить</a> или
-                                <a href="{% url 'decline_request' i.id %}">не добавлять</a></p>
-                        {% endif %}
+                {% if friend_requests %}
+                    {% for i in friend_requests %}
+                        <p>Пользователь <a href="{% url 'profile' i.from_user.slug %}">{{ i.from_user.nickname }}</a> хочет добавить вас в друзья <a href="{% url 'accept_friend_request' i.id %}">добавить</a> или
+                            <a href="{% url 'decline_request' i.id %}">не добавлять</a></p>
                     {% endfor %}
+                {% endif %}
                 </div>
             </div>
             </div>
@@ -93,11 +93,11 @@
                 <hr>
                   <div class="row">
                       <div class="col-sm-3">
-                          <h6 class="mb-0">Друзья</h6>
+                          <h6 class="mb-0"><a href="{% url 'friends' user.slug %}">Друзья</a></h6>
                         </div>
                       <div class="col-sm-9 text-secondary">
-                        {% for i in user.friends.all %}
-                            <a href="{% url 'profile' i.slug %}">{{ i }}</a><a href="{% url 'delete_friend' i.id %}">удалить из друзей</a>
+                        {% for i in friends %}
+                            <a href="{% url 'profile' i.slug %}">{{ i.nickname }}</a> <a href="{% url 'delete_friend' i.id %}">удалить из друзей</a>
                         {% endfor %}
                     </div>
                 </div>
@@ -106,4 +106,24 @@
           </div>
         </div>
     </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+    $(document).ready(function () {
+        $('#friend_request').click(function () {
+            $.ajax({
+                data: $(this).serialize(),
+                type: $(this).attr('method'),
+                url: '{% url 'send_friend_request' user.id %}',
+                success: function (response) {
+                    location.reload()
+                }
+            })
+        })
+    })
+    </script>
+
 {% endblock %}

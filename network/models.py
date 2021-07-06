@@ -1,7 +1,6 @@
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from pytils.translit import slugify
 
 
@@ -12,7 +11,7 @@ def validate_image(image):
         raise ValidationError('Максимальный размер фото - 2мб')
 
 
-class ProfileManager(BaseUserManager):
+class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None):
         if not username:
             raise ValueError('Должен быть логин')
@@ -38,17 +37,17 @@ class ProfileManager(BaseUserManager):
         return user
 
 
-class Profile(AbstractBaseUser):
+class User(AbstractBaseUser):
     username = models.CharField(max_length=30, verbose_name='Логин', unique=True)
     email = models.EmailField(max_length=30, verbose_name='Email', unique=True)
     nickname = models.CharField(max_length=30, verbose_name='Позывной', unique=False)
     slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
                             error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
     about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
-    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?', blank=True, null=True)
+    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?', blank=True,
+                                 null=True)
     rank = models.ForeignKey('Rank', on_delete=models.CASCADE, verbose_name='Ранг', blank=True, null=True)
     experience = models.IntegerField(default=0, verbose_name='Опыт')
-    friends = models.ManyToManyField('Profile', blank=True)
     profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
                                     validators=[validate_image])
     is_admin = models.BooleanField(default=False)
@@ -56,7 +55,7 @@ class Profile(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    objects = ProfileManager()
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -71,20 +70,15 @@ class Profile(AbstractBaseUser):
         return True
 
     def save(self, *args, **kwargs):
-        value = self.username
-        self.slug = slugify(value)
+        if not self.slug:
+            self.slug = slugify(self.username)
         if not self.nickname:
             self.nickname = self.username
         super().save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Профиль'
-        verbose_name_plural = 'Профили'
-
-
-class FriendRequest(models.Model):
-    from_user = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='from_user')
-    to_user = models.ForeignKey('Profile', on_delete=models.CASCADE, related_name='to_user')
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
 
 class Snusoman(models.Model):
@@ -107,8 +101,8 @@ class Thread(models.Model):
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Время обновления')
     is_important = models.BooleanField(default=False, verbose_name='Закрепить?')
-    author = models.ForeignKey('Profile', on_delete=models.CASCADE, verbose_name='Автор')
-    likes = models.ManyToManyField(Profile, blank=True, related_name='thread_likes')
+    author = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='Автор')
+    likes = models.ManyToManyField('User', blank=True, related_name='thread_likes')
 
     def __str__(self):
         return self.title
@@ -128,12 +122,12 @@ class Thread(models.Model):
 
 
 class Comment(models.Model):
-    author = models.ForeignKey('Profile', on_delete=models.CASCADE)
+    author = models.ForeignKey('User', on_delete=models.CASCADE)
     thread = models.ForeignKey('Thread', on_delete=models.CASCADE, related_name='comments')
     content = models.CharField(max_length=1000, unique=False, verbose_name='Комментарий')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата написания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')
-    likes = models.ManyToManyField(Profile, blank=True, related_name='comment_likes')
+    likes = models.ManyToManyField(User, blank=True, related_name='comment_likes')
 
     def __str__(self):
         return self.content

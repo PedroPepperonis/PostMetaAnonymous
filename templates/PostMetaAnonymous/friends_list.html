@@ -1,0 +1,13 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+
+    <h1>Friends page</h1>
+    {% for i in friends %}
+
+        <a href="{% url 'profile' i.slug %}">{{ i.nickname }}</a>
+
+    {% endfor %}
+
+
+{% endblock %}
