@@ -1,26 +1,27 @@
 {% extends 'PostMetaAnonymous/base.html' %}
 
 {% block content %}
-    {% if request.user.is_authenticated %}
-            <div class="m-2">
-                <h2>Посты</h2>
-                {% for i in threads %}
-                    <ul class="list-group">
-                        <li class="list-group-item m-1">
-                            <h2>{{ i.title }}</h2>
-                            {% autoescape on %}
-                            <p>{{ i.content|linebreaks|truncatewords:10 }}</p>
-                            {% endautoescape %}
-                            <p><a href="{% url 'thread' i.slug %}">Читать полностью</a></p>
-                            <p>Автор: <a href="{% url 'profile' i.author.slug %}">{{ i.author.nickname }}</a></p>
-                        </li>
-                    </ul>
-                {% endfor %}
-            </div>
-    {% else %}
-        <a href="{% url 'login' %}">Войти</a>
-        <a href="{% url 'register' %}">Зарегистрироваться</a>
-    {% endif %}
+    <div class="container">
+        {% if not groups %}
+            <h3>Вы не подписаны ни на одно сообщество, поэтому выведено 5 последних постов</h3>
+        {% endif %}
+        <div class="list">
+            {% for i in posts %}
+                <div class="list__item" id="{{ i.unique_id }}">
+                    <div class="list__header">
+                        <span>Автор: <a href="{% url 'profile' i.author.slug %}" class="url_underline">{{ i.author }}</a> Группа: <a
+                                href="{% url 'group' i.group.slug %}" class="url_underline">{{ i.group.title }}</a></span>
+                            </div>
+                    <div class="list__title">
+                        <h3><a href="{% url 'post' i.group i.slug %}">{{ i.title }}</a></h3>
+                    </div>
+                    <div class="list__content">
+                        <p>{{ i.content|safe|linebreaks|truncatewords:100 }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 {% endblock %}
 
 {% block js %}

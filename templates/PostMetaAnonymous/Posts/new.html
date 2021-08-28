@@ -1,0 +1,27 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+
+    <div class="container">
+        <h3>Новый пост</h3>
+        <div class="form body_size_l column">
+            <form action="{{ form.action }}" method="POST">
+                {% csrf_token %}
+                {{ form.media }}
+                {% for i in form %}
+                    <div class="form_column">
+                        {{ i }}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="button">Опубликовать</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+
+
+
+{% endblock %}

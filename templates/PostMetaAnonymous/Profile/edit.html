@@ -1,0 +1,47 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="form body_size_m">
+        <form action="{{ form.action }}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for i in form %}
+                <div class="form_column">
+                    <label for="{{ i.id_for_label }}">{{ i.label }}</label>
+                    <p>{{ i }}</p>
+                </div>
+            {% endfor %}
+
+            <button class="submit-btn">Обновить</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>
+      $(document).ready(function () {
+          $('#edit_profile_form').submit(function (e) {
+              e.preventDefault()
+              $form = $(this)
+              let form_data = new FormData(this)
+              $.ajax({
+                  data: form_data, // получаем данные формы
+                  type: $(this).attr('method'), // GET или POST
+                  url: "{% url 'edit_profile' %}",
+                  success: function (response) {
+                      location.reload()
+                  },
+                  error: function (response) {
+                      document.getElementById('message').innerHTML = response.message
+                  },
+                  cache: false,
+                  contentType: false,
+                  processData: false,
+              });
+              return false;
+          });
+      })
+  </script>
+{% endblock js %}

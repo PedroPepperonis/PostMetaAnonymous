@@ -1,0 +1,28 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="list">
+            {% for i in posts %}
+                <div class="list__item" id="{{ i.unique_id }}">
+                    <div class="list__header">
+                        <span>Автор: <a href="{% url 'profile' i.author.slug %}" class="url_underline">{{ i.author }}</a> Группа: <a
+                                href="{% url 'group' i.group.slug %}" class="url_underline">{{ i.group.title }}</a></span>
+                    </div>
+                    <div class="list__title">
+                        <h3><a href="{% url 'post' i.group i.slug %}">{{ i.title }}</a></h3>
+                    </div>
+                    <div class="list__content">
+                        <p>{{ i.content|safe|linebreaks|truncatewords:100 }}</p>
+                    </div>
+                    <div class="list__footer">
+                        <p><a href="{% url 'edit_post' i.slug %}" class="url_underline">Изменить</a>
+                            <span class="delete_post url_underline" id="{{ i.unique_id }}">Удалить</span></p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}

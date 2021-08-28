@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Snusoman, Thread, Comment, Rank
+from .models import User, Snusoman, Post, Group, Comment, Rank, FriendRequest
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -16,8 +16,8 @@ class SnusomanAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
-class ThreadAdmin(admin.ModelAdmin):
-    list_display = ('title', )
+class PostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'group', 'time_create')
     prepopulated_fields = {'slug': ('title',)}
 
 
@@ -25,8 +25,16 @@ class RankAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
 
 
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('title', )
+    prepopulated_fields = {'slug': ('title',)}
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Snusoman, SnusomanAdmin)
-admin.site.register(Thread, ThreadAdmin)
+admin.site.register(Post, PostAdmin)
 admin.site.register(Comment)
 admin.site.register(Rank, RankAdmin)
+admin.site.register(Group, GroupAdmin)
+admin.site.register(FriendRequest)
+

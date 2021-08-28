@@ -1,0 +1,22 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+
+    <div class="container">
+        <h3>Редактирование группы {{ group.title }}</h3>
+        <div class="form body_size_m">
+            <form action="{{ form.action }}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {% for i in form %}
+                    <div class="form_column">
+                        <label for="{{ i.id_for_label }}">{{ i.label }}</label>
+                        <p>{{ i }}</p>
+                    </div>
+                {% endfor %}
+
+                <button class="button">Обновить</button>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

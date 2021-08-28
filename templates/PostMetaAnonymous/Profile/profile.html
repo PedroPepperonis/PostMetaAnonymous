@@ -1,0 +1,122 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <section>
+        <div class="container">
+            <div class="profile row">
+                <div class="profile__body body_size_l row">
+                    <div class="profile__left_side">
+                        <div class="profile__avatar">
+                            {% if user.profile_pic %}
+                                <img class="avatar_size_xl" src="{% static user.profile_pic.url %}" alt="">
+                            {% else %}
+                                <img class="avatar_size_xl" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt="">
+                            {% endif %}
+                        </div>
+                        <div class="profile__nickname">
+                            <h2>{{ user.nickname }}</h2>
+                        </div>
+                        {% if user == request.user %}
+                            <div class="profile__edit">
+                                <a href="{% url 'edit_profile' %}" class="url_underline">Редактировать профиль</a>
+                            </div>
+                        {% endif %}
+                        {% if request.user != user %}
+                            {% if is_friends %}
+                            {% elif friends_request_is_send %}
+                                <p>Запрос в друзья отправлен</p>
+                            {% else %}
+                                <button class="send_friend_request button" id="{{ user.id }}">Добавить в друзья</button>
+                            {% endif %}
+                        {% endif %}
+                        {% if user.about %}
+                            <div class="profile__about">
+                                <p>{{ user.about|linebreaks }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="profile__right_side">
+                        <div class="profile__snusoman">
+                            <p>Класс: {{ user.snusoman }}</p>
+                        </div>
+                        <hr>
+                        <div class="profile__rank">
+                            <p>Ранг: {{ user.rank }}</p>
+                        </div>
+                        <hr>
+                        <div class="profile__experience">
+                            <p>Опыт: {{ user.experience }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% if friends_requests and request.user == user %}
+                    <div class="friend_requests body_size_s">
+                        <div class="friend_requests__title">
+                            <h3>Запросы в друзья</h3>
+                        </div>
+                        {% if request.user == user %}
+                            <div class="friend_requests_list column">
+                                {% for i in friends_requests %}
+                                        <div class="friends_requests_list__item_row row" id="{{ i.id }}">
+                                            <div class="friend_requests_list__avatar">
+                                                {% if i.profile_pic %}
+                                                    <img class="avatar_size_m" src="{% static i.profile_pic.url %}" alt="">
+                                                {% else %}
+                                                    <img class="avatar_size_m" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt="">
+                                                {% endif %}
+                                            </div>
+                                            <div class="friend_requests_item__column column">
+                                                <div class="friend_requests_item__row">
+                                                    <div class="friend_requests_list__nickname">
+                                                        <a class="url_underline" href="{% url 'profile' i.from_user.slug %}"><span>{{ i.from_user.nickname }}</span></a>
+                                                    </div>
+                                                </div>
+                                                <div class="friend_requests_item__row row">
+                                                    <div class="friend_requests_item__accept">
+                                                        <button class="accept_friend_request button" id="{{ i.id }}">Добавить</button>
+                                                    </div>
+                                                    <div class="friend_requests_item__decline">
+                                                        <button class="decline_friend_request button" id="{{ i.id }}">Отклонить</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                {% endif %}
+            </div>
+            <div class="friends">
+                {% if user.friends.count != 0 %}
+                    <div class="friends body_size_s">
+                        <h3>Друзья</h3>
+                        <div class="friends_list">
+                            {% for i in friends %}
+                                <div class="friends_list__item row" id="{{ i.id }}">
+                                    <div class="friend_avatar">
+                                        {% if i.profile_pic %}
+                                            <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{% static i.profile_pic.url %}" alt=""></a>
+                                        {% else %}
+                                            <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt=""></a>
+                                        {% endif %}
+                                    </div>
+                                    <div class="friend_nickname">
+                                        <p>
+                                            <a class="url_underline" href="{% url 'profile' i.slug %}">{{ i.nickname }}</a>
+                                            {% if request.user == user %}
+                                                <span class="delete_friend url_underline" id="{{ i.id }}">удалить из друзей</span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+{% endblock %}

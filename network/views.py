@@ -1,34 +1,58 @@
 from django.contrib.auth import logout
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.views import LoginView
-from django.contrib.auth.decorators import login_required
 from django.views import View
 from django.views.generic import DetailView, CreateView, ListView, UpdateView
 from django.views.generic.edit import FormMixin
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponseRedirect, JsonResponse
-from django.urls import reverse_lazy, reverse
-from itertools import chain
+from django.urls import reverse_lazy
 
-from friendship.models import Friend, FriendshipRequest
+from .forms import RegisterForm, LoginForm, ProfileChangeForm, PostForm, CommentForm, GroupAdminForm, \
+    GroupModeratorForm, EditPostForm
+from .models import User, Post, Comment, Rank, Group, FriendRequest
 
-from .forms import RegisterForm, LoginForm, ProfileChangeForm, ThreadForm, CommentForm
-from .models import User, Thread, Comment, Rank
+
+def sort_posts_by_time_create(posts):
+    swapped = True
+    while swapped:
+        swapped = False
+        for i in range(len(posts) - 1):
+            if posts[i].time_create < posts[i + 1].time_create:
+                posts[i], posts[i + 1] = posts[i + 1], posts[i]
+                swapped = True
+    return posts
 
 
 class HomePage(ListView):
-    model = Thread
+    model = Post
     template_name = 'PostMetaAnonymous/index.html'
-    context_object_name = 'threads'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        groups = Group.objects.filter(followers=self.request.user)
+        posts = []
+        for i in range(len(groups)):
+            posts += Post.objects.filter(group=groups[i])
+        if len(groups) == 0:
+            posts = Post.objects.all()[:5]
+        sort_posts_by_time_create(posts)
+        return posts
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Главная страница'
+        groups_count = Group.objects.filter(followers=self.request.user)
+        groups = True
+        if len(groups_count) == 0:
+            groups = False
+        context['groups'] = groups
         return context
 
 
 class UserPage(DetailView):
     model = User
-    template_name = 'PostMetaAnonymous/profile.html'
+    template_name = 'PostMetaAnonymous/Profile/profile.html'
     context_object_name = 'user'
 
     def get_object(self, queryset=None):
@@ -37,48 +61,128 @@ class UserPage(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = get_object_or_404(User, slug=self.kwargs['url'])
-        context['title'] = self.request.user.nickname
-        context['comments'] = Comment.objects.filter(author=self.request.user)[:5]
-        context['friends'] = Friend.objects.friends(user)
-        context['friend_requests'] = Friend.objects.unread_requests(self.request.user)
+        is_friends = False
+        if user.friends.filter(id=self.request.user.id).exists():
+            is_friends = True
+
+        friends_request_is_send = False
+        friend_requests = FriendRequest.objects.filter(to_user__slug=self.kwargs['url'], from_user=self.request.user)
+        if friend_requests.exists():
+            friends_request_is_send = True
+
+        context['title'] = user.nickname
+        context['friends_requests'] = FriendRequest.objects.filter(to_user__slug=self.kwargs['url'])
+        context['friends_request_is_send'] = friends_request_is_send
+        context['is_friends'] = is_friends
+        context['friends'] = user.friends.all()[:5]
         return context
 
 
-class FriendsListPage(ListView):
-    model = Friend
-    template_name = 'PostMetaAnonymous/friends_list.html'
-    context_object_name = 'friends'
+# class FriendsListPage(ListView):
+#     model = Friend
+#     template_name = 'PostMetaAnonymous/Profile/friends.html'
+#     context_object_name = 'friends'
+#
+#     def get_queryset(self, *args, **kwargs):
+#         user = get_object_or_404(User, slug=self.kwargs['url'])
+#         return Friend.objects.friends(user)
+#
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['title'] = 'Друзья ' + str(self.request.user)
+#         return context
 
-    def get_queryset(self, *args, **kwargs):
-        user = get_object_or_404(User, slug=self.kwargs['url'])
-        return Friend.objects.friends(user)
 
-
-class EditThread(UpdateView):
-    model = Thread
-    form_class = ThreadForm
+class GroupPage(DetailView):
+    model = Group
     slug_url_kwarg = 'url'
-    template_name = 'PostMetaAnonymous/edit_thread.html'
-    success_url = reverse_lazy('threads')
+    template_name = 'PostMetaAnonymous/Group/group.html'
+    context_object_name = 'group'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        subscribed = False
+        group = get_object_or_404(Group, slug=self.kwargs['url'])
+        if group.followers.filter(id=self.request.user.id).exists():
+            subscribed = True
+        admin = False
+        if group.admin == self.request.user:
+            admin = True
+        moderator = False
+        if group.moderator.filter(id=self.request.user.id).exists():
+            moderator = True
+
+        context['title'] = group.title
+        context['subscribed'] = subscribed
+        context['admin'] = admin
+        context['moderator'] = moderator
+        return context
 
 
-class NewThread(CreateView):
-    form_class = ThreadForm
-    template_name = 'PostMetaAnonymous/new_thread.html'
+class GroupEdit(UserPassesTestMixin, UpdateView):
+    model = Group
+    slug_url_kwarg = 'url'
+    template_name = 'PostMetaAnonymous/Group/edit.html'
+
+    def test_func(self):
+        post = get_object_or_404(Group, slug=self.kwargs['url'])
+        if post.admin == self.request.user:
+            self.form_class = GroupAdminForm
+            return True
+        if post.moderator.filter(id=self.request.user.id):
+            self.form_class = GroupModeratorForm
+            return True
+        return False
+
+    def get_success_url(self):
+        return reverse_lazy('group', args=[self.kwargs['url']])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        group = get_object_or_404(Group, slug=self.kwargs['url'])
+        context['title'] = 'Редактирование группы ' + str(group.title)
+        return context
+
+
+class EditPost(UpdateView):
+    model = Post
+    form_class = EditPostForm
+    slug_url_kwarg = 'url'
+    template_name = 'PostMetaAnonymous/Posts/edit.html'
+    success_url = reverse_lazy('home')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = get_object_or_404(Post, slug=self.kwargs['url'])
+        context['title'] = 'Редактирование поста ' + str(post.title)
+        return context
+
+
+class NewPost(CreateView):
+    form_class = PostForm
+    template_name = 'PostMetaAnonymous/Posts/new.html'
     success_url = reverse_lazy('home')
 
     def get_object(self, queryset=None):
         return self.request.user
 
+    def get_form(self, form_class=None):
+        return PostForm(self.request.user)
+
     def post(self, request, *args, **kwargs):
-        form = ThreadForm(self.request.POST)
+        form = PostForm(self.request.user, self.request.POST)
         if form.is_valid():
-            new_thread = Thread.objects.create(
+            group = get_object_or_404(Group, title=form.cleaned_data['group'].title)
+            post = Post.objects.create(
                 author=self.request.user,
                 title=form.cleaned_data['title'],
-                content=form.cleaned_data['content']
+                content=form.cleaned_data['content'],
+                group=form.cleaned_data['group']
             )
-            new_thread.save()
+            group.posts.add(post)
+            post.save()
+            group.save()
+
             return redirect('home')
 
     def get_context_data(self, **kwargs):
@@ -87,61 +191,56 @@ class NewThread(CreateView):
         return context
 
 
-class ShowThread(FormMixin, DetailView):
-    model = Thread
+class ShowPost(FormMixin, DetailView):
+    model = Post
     form_class = CommentForm
-    template_name = 'PostMetaAnonymous/thread.html'
+    template_name = 'PostMetaAnonymous/Posts/post.html'
     slug_url_kwarg = 'url'
-    context_object_name = 'thread'
+    context_object_name = 'post'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        thread = get_object_or_404(Thread, slug=self.kwargs['url'])
-        liked = False
-        if thread.likes.filter(id=self.request.user.id).exists():
-            liked = True
+        post = get_object_or_404(Post, slug=self.kwargs['url'])
         context['title'] = self.get_object()
-        context['liked'] = liked
+        context['comments'] = Comment.objects.filter(post=post)
         return context
 
-    def post(self, request, url):
+    def post(self, request, group, url):
         form = CommentForm(self.request.POST)
         if form.is_valid():
             new_comment = Comment.objects.create(
                 author=self.request.user,
                 content=form.cleaned_data['content'],
-                thread=Thread.objects.get(slug=url)
+                post=Post.objects.get(slug=self.kwargs['url'])
             )
             new_comment.save()
             return redirect(self.request.path)
 
 
-class UserThreads(ListView):
-    model = Thread
-    template_name = 'PostMetaAnonymous/user_threads.html'
-    context_object_name = 'threads'
+class UserPosts(ListView):
+    model = Post
+    template_name = 'PostMetaAnonymous/Posts/user_posts.html'
+    context_object_name = 'posts'
 
     def get_queryset(self):
-        return Thread.objects.filter(author=self.request.user)
+        return Post.objects.filter(author=self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Мои посты'
+        context['title'] = 'Посты ' + str(self.request.user.nickname)
         return context
 
 
 class EditPage(UpdateView):
     form_class = ProfileChangeForm
-    template_name = 'PostMetaAnonymous/edit_profile.html'
-    slug_url_kwarg = 'url'
+    template_name = 'PostMetaAnonymous/Profile/edit.html'
 
     def get_object(self, queryset=None):
         return self.request.user
 
-    def form_valid(self, form):
-        form.save()
-        return JsonResponse({'message': 'Данные профиля успешно обновлены'}, status=200)
+    # return reverse_lazy('group', args=[self.kwargs['url']])
+    def get_success_url(self):
+        return reverse_lazy('profile', args=[self.request.user.slug])
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -151,7 +250,7 @@ class EditPage(UpdateView):
 
 class RegisterPage(CreateView):
     form_class = RegisterForm
-    template_name = 'PostMetaAnonymous/register.html'
+    template_name = 'PostMetaAnonymous/Utils/register.html'
     success_url = reverse_lazy('login')
 
     def get_context_data(self, **kwargs):
@@ -162,7 +261,7 @@ class RegisterPage(CreateView):
 
 class LoginPage(LoginView):
     form_class = LoginForm
-    template_name = 'PostMetaAnonymous/login.html'
+    template_name = 'PostMetaAnonymous/Utils/login.html'
 
     def get_success_url(self):
         return reverse_lazy('home')
@@ -173,41 +272,59 @@ class LoginPage(LoginView):
         return context
 
 
-class SearchPage(ListView):
-    template_name = 'PostMetaAnonymous/search.html'
-    context_object_name = 'results'
+class SearchPage(View):
+    def get(self, request):
+        print(self.request.GET.get('query'))
+        posts = Post.objects.filter(title__icontains=self.request.GET.get('query'))
+        groups = Group.objects.filter(title__icontains=self.request.GET.get('query'))
+        users = User.objects.filter(nickname__icontains=self.request.GET.get('query'))
+        context = {
+            'posts': posts,
+            'groups': groups,
+            'users': users,
+        }
+        return render(request, 'PostMetaAnonymous/Utils/search.html', context=context)
 
     def get_queryset(self):
-        threads = Thread.objects.filter(title__icontains=self.request.GET.get('query'))
+        posts = Post.objects.filter(title__icontains=self.request.GET.get('query'))
+        groups = Group.objects.filter(title__icontains=self.request.GET.get('query'))
         users = User.objects.filter(nickname__icontains=self.request.GET.get('query'))
-        results = chain(users, threads)
-        return results
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = self.request.GET.get('query')
-        return context
+        return posts
 
 
-@login_required
-def like(request, url):
-    post = get_object_or_404(Thread, slug=url)
-    liked = False
+# система лайков
+def post_like(request):
+    post_id = request.GET.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
     if post.likes.filter(id=request.user.id).exists():
         post.likes.remove(request.user)
         down_user_rank(request, post.author_id)
-        liked = False
-    else:
+        return JsonResponse({'likes': post.get_likes_count(), 'dislikes': post.get_dislikes_count()}, status=200)
+    if post.dislikes.filter(id=request.user.id).exists():
+        post.dislikes.remove(request.user)
+    if not post.likes.filter(id=request.user.id).exists():
         post.likes.add(request.user)
         up_user_rank(request, post.author_id)
-        liked = True
-
-    return HttpResponseRedirect(reverse('thread', args=[str(url)]))
+    return JsonResponse({'likes': post.get_likes_count(), 'dislikes': post.get_dislikes_count()}, status=200)
 
 
-@login_required
-def comment_like(request, id):
-    comment = get_object_or_404(Comment, id=id)
+def post_dislike(request):
+    post_id = request.GET.get('post_id')
+    post = get_object_or_404(Post, id=post_id)
+    if post.dislikes.filter(id=request.user.id).exists():
+        post.dislikes.remove(request.user)
+        up_user_rank(request, post.author_id)
+        return JsonResponse({'likes': post.get_likes_count(), 'dislikes': post.get_dislikes_count()}, status=200)
+    if post.likes.filter(id=request.user.id).exists():
+        post.likes.remove(request.user)
+    if not post.dislikes.filter(id=request.user.id).exists():
+        post.dislikes.add(request.user)
+        down_user_rank(request, post.author_id)
+    return JsonResponse({'likes': post.get_likes_count(), 'dislikes': post.get_dislikes_count()}, status=200)
+
+
+def comment_like(request, user_id):
+    comment = get_object_or_404(Comment, id=user_id)
     liked = False
     if comment.likes.filter(id=request.user.id).exists():
         comment.likes.remove(request.user)
@@ -221,30 +338,30 @@ def comment_like(request, id):
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 
-@login_required
-def delete_post(request, url):
-    thread = Thread.objects.get(slug=url)
-    thread.delete()
-    return redirect('threads')
-
-
-@login_required
-def delete_comment(request, id):
-    comment = Comment.objects.get(id=id)
+def delete_comment(request):
+    comment_id = request.GET.get('comment_id')
+    comment = Comment.objects.get(id=comment_id)
     comment.delete()
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    return JsonResponse({'message': 'Удалено'}, status=200)
 
 
-@login_required
+def delete_post(request, unique_id):
+    post = Post.objects.get(unique_id=unique_id)
+    if post.delete():
+        return JsonResponse({'message': 'Пост успешно удален'}, status=200)
+    return JsonResponse({'message': 'Не удалось удалить пост'}, status=503)
+
+
+# логаут
 def logout_user(request):
     logout(request)
     return redirect('home')
 
 
-@login_required
-def up_user_rank(request, id):
+# система рангов
+def up_user_rank(request, user_id):
     rank = Rank.objects.all()
-    liked_user = get_object_or_404(User, id=id)
+    liked_user = get_object_or_404(User, id=user_id)
     liked_user.experience += 1
     for i in rank:
         if liked_user.experience < i.experience:
@@ -254,11 +371,10 @@ def up_user_rank(request, id):
     return liked_user.save()
 
 
-@login_required
-def down_user_rank(request, id):
+def down_user_rank(request, user_id):
     rank = Rank.objects.all()
 
-    liked_user = get_object_or_404(User, id=id)
+    liked_user = get_object_or_404(User, id=user_id)
     liked_user.experience -= 1
     for i in rank:
         if liked_user.experience < i.experience:
@@ -268,28 +384,57 @@ def down_user_rank(request, id):
     return liked_user.save()
 
 
-@login_required
-def send_friend_request(request, userID):
-    to_user = get_object_or_404(User, id=userID)
-    Friend.objects.add_friend(request.user, to_user)
-    return JsonResponse({'success': 'Success'}, status=200)
+# система друзей
+def send_friend_request(request):
+    user_id = request.GET.get('user_id')
+    from_user = get_object_or_404(User, id=request.user.id)
+    to_user = get_object_or_404(User, id=user_id)
+    FriendRequest.objects.create(
+        from_user=from_user,
+        to_user=to_user,
+    ).save()
+    return JsonResponse({'message': 'Success'}, status=200)
 
 
-@login_required
-def accept_friend_request(request, requestID):
-    friend_request = FriendshipRequest.objects.get(id=requestID)
-    friend_request.accept()
-    return redirect('home')
+def accept_friend_request(request):
+    request_id = request.GET.get('request_id')
+    friend_request = get_object_or_404(FriendRequest, id=request_id)
+    from_user = get_object_or_404(User, id=friend_request.from_user.id)
+    to_user = get_object_or_404(User, id=friend_request.to_user.id)
+    from_user.friends.add(to_user)
+    to_user.friends.add(from_user)
+    friend_request.delete()
+    return JsonResponse({'message': 'Success'}, status=200)
 
 
-@login_required
-def decline_friend_request(request, requestID):
-    friend_request = FriendshipRequest.objects.get(id=requestID)
-    friend_request.cancel()
-    return redirect('home')
+def decline_friend_request(request):
+    request_id = request.GET.get('request_id')
+    friend_request = get_object_or_404(FriendRequest, id=request_id)
+    friend_request.delete()
+    return JsonResponse({'message': 'Success'})
 
 
-@login_required
-def delete_friend(request, userID):
-    Friend.objects.remove_friend(userID, request.user)
-    return redirect('home')
+def delete_friend(request):
+    user_id = request.GET.get('user_id')
+    from_user = get_object_or_404(User, id=request.user.id)
+    to_user = get_object_or_404(User, id=user_id)
+    from_user.friends.remove(to_user)
+    to_user.friends.remove(from_user)
+    return JsonResponse({'message': 'Success'}, status=200)
+
+
+# группы
+def subscribe_to_group(request, group_slug):
+    group = get_object_or_404(Group, slug=group_slug)
+    user = get_object_or_404(User, id=request.user.id)
+    user.groups.add(group)
+    group.followers.add(request.user)
+    return JsonResponse({'message': 'Успешно'}, status=200)
+
+
+def unsubscribe_from_group(request, group_slug):
+    group = get_object_or_404(Group, slug=group_slug)
+    user = get_object_or_404(User, id=request.user.id)
+    user.groups.remove(group)
+    group.followers.remove(request.user)
+    return JsonResponse({'message': 'Успешно'}, status=200)

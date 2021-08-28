@@ -1,0 +1,100 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+{% load static %}
+
+{% block content %}
+
+    <section>
+        <div class="group_header">
+            {% if group.background_photo %}
+                <div class="group_header__background" style="background: url({% static group.background_photo.url %}) no-repeat center / cover;">
+                </div>
+            {% else %}
+                <div class="group_header__background" style="background: url({% static 'images/images/1.jpg' %}) no-repeat center / cover;">
+                </div>
+            {% endif %}
+        </div>
+        <div class="container">
+            <div class="group_info row">
+                <div class="group_info__avatar">
+                    {% if group.group_avatar %}
+                        <img src="{% static group.group_avatar.url %}" alt="" class="avatar_size_m">
+                    {% else %}
+                        <img src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt="" class="avatar_size_m">
+                    {% endif %}
+                </div>
+                <div class="group_info__title title">
+                    <h1>{{ group.title }}</h1>
+                    <h4>group/{{ group.slug }}</h4>
+                </div>
+                <div class="group_info__subscribe_button">
+                    <button class="subscribe_button button" id="subscribe_button" is_subscribed="{{ subscribed }}" group_slug="{{ group.slug }}">Подписаться</button>
+                </div>
+                {% if admin or moderator %}
+                    <div class="group_info__edit_group_button">
+                        <a href="{% url 'edit_group' group.slug %}"><button class="button">Редактировать сообщество</button></a>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="group_content row">
+                <div class="posts">
+                    <div class="list">
+                        {% for i in group.posts.all %}
+                            <div class="list__item" id="{{ i.unique_id }}">
+                                <div class="list__header">
+                                    <span>Автор: <a href="{% url 'profile' i.author.slug %}" class="url_underline">{{ i.author }}</a> Группа: <a
+                                            href="{% url 'group' i.group.slug %}" class="url_underline">{{ i.group.title }}</a></span>
+                                </div>
+                                <div class="list__title">
+                                    <h3><a href="{% url 'post' i.group i.slug %}">{{ i.title }}</a></h3>
+                                </div>
+                                <div class="list__content">
+                                    <p>{{ i.content|safe|linebreaks|truncatewords:100 }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="group_details">
+                    <div class="group_details__column body_size_m">
+                        <div class="group_details__title title">
+                            <h2>О сообществе</h2>
+                        </div>
+                        <hr>
+                        <div class="group_details__about">
+                            <p>{{ group.about }}</p>
+                        </div>
+                        <div class="group_details__followers_count">
+                            <p>Подписчиков: {{ group.followers.count }}</p>
+                        </div>
+                        <hr>
+                        <div class="group_details__date_create">
+                            <p>{{ group.time_create }}</p>
+                        </div>
+                    </div>
+                    <div class="group_details__column body_size_m">
+                        <div class="group_details__title title">
+                            <h2>Админ</h2>
+                        </div>
+                        <hr>
+                        <div class="group_admin row">
+                            <div class="group_admin__avatar">
+                                <img src="{% static group.admin.profile_pic.url %}" alt="" class="avatar_size_m">
+                            </div>
+                            <div class="group_admin__username">
+                                <a href="{% url 'profile' group.admin.slug %}" class="url_underline">{{ group.admin.nickname }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            <div class="container">
+                <div class="group-content">
+                    <div class="group-content-left">
+
+                    </div>
+
+                </div>
+        </div>
+    </section>
+{% endblock %}

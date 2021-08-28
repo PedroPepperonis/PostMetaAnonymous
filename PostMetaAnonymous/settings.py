@@ -3,7 +3,6 @@ import os.path
 from pathlib import Path
 
 import django_heroku
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +23,10 @@ AUTH_USER_MODEL = 'network.User'
 
 # Application definition
 
+CHAT_WS_SERVER_HOST = 'localhost'
+CHAT_WS_SERVER_PORT = 5002
+CHAT_WS_SERVER_PROTOCOL = 'ws'
+
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
@@ -32,9 +35,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'network.apps.NetworkConfig',
-    'chat.apps.ChatConfig',
-    'friendship',
-    'channels',
+    'ckeditor',
+    'django_private_chat',
 ]
 
 MIDDLEWARE = [
@@ -67,15 +69,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'PostMetaAnonymous.wsgi.application'
-ASGI_APPLICATION = 'PostMetaAnonymous.asgi.application'
-CHANNELS_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
-        }
-    }
-}
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -90,7 +83,20 @@ DATABASES = {
         'PORT': '5432',
     }
 }
-#DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'Custom',
+        'height': 200,
+        'width': 835.88,
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline', 'Strike'],
+            ['Link', 'Unlink'],
+            ['BulletedList', 'NumberedList', 'Table'],
+            ['Image'],
+        ]
+    },
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -145,4 +151,4 @@ STATICFILES_DIRS = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
 
-#django_heroku.settings(locals())
+django_heroku.settings(locals())

@@ -1,0 +1,98 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container">
+        <div class="post" id="{{ post.id }}">
+            <div class="post_body body_size_m">
+                <div class="post__row row">
+                    <div class="post_likes">
+                        <div class="post_likes__column">
+                            <div class="post_likes__like_btn" id="{{ post.id }}">
+                                <img src="https://clipart-best.com/img/like/like-clip-art-26.png" class="like_button" alt="">
+                            </div>
+                            <div class="post_likes__likes_count">
+                                <p><span id="likes-count">{{ post.get_likes_count }}</span></p>
+                            </div>
+                        </div>
+                        <div class="post_likes__column">
+                            <div class="post_likes__dislike_btn" id="{{ post.id }}">
+                                <img src="https://pngimg.com/uploads/dislike/dislike_PNG19.png" class="like_button" alt="">
+                            </div>
+                            <div class="post_likes__likes_count">
+                                <p><span id="dislikes-count">{{ post.get_dislikes_count }}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="post_content">
+                        <div class="post_content__header">
+                            <p>Дата публикации: {{ post.time_create }}</p>
+                            <p>Автор: <a href="{% url 'profile' post.author.slug %}" class="url_underline">{{ post.author.nickname }}</a></p>
+                        </div>
+                        <div class="post_content__title">
+                            <h1>{{ post.title }}</h1>
+                        </div>
+                        <div class="post_content__text">
+                            <p>{{ post.content|safe|linebreaks }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="post_details body_size_s">
+                <div class="post_details__row row">
+                    <div class="post_details__group_avatar">
+                        {% if post.group.group_avatar %}
+                            <img src="{% static post.group.group_avatar.url %}" alt="" class="avatar_size_m">
+                        {% endif %}
+                    </div>
+                    <div class="post_details__group_info">
+                        <h2><a href="{% url 'group' post.group.slug %}">{{ post.group.title }}</a></h2>
+                        <p>{{ post.group.about }}</p>
+                        <p>Подписчиков: {{ post.group.followers.count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="comment_form">
+            <form action="{{ form.action }}" method="POST">
+                {% csrf_token %}
+                <div class="comment_form__textarea">
+                    {{ form.content }}
+                </div>
+                <div class="comment_form__button">
+                    <button type="submit" class="button">Оставить комментарий</button>
+                </div>
+            </form>
+        </div>
+        <div class="comments_list column">
+            {% if comments %}
+                {% for i in comments %}
+                    <div class="comments_item body_size_m row" id="{{ i.id }}">
+                        <div class="comments_item__user_avatar">
+                            {% if i.author.profile_pic %}
+                                <img class="avatar_size_s" src="{% static i.author.profile_pic.url %}" alt="">
+                            {% else %}
+                                <img class="avatar_size_s" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt="">
+                            {% endif %} 
+                        </div>
+                        <div class="comments_item__column">
+                            <div class="comments_item__nickname">
+                                <p><a class="url_underline" href="{% url 'profile' i.author.slug %}">{{ i.author.nickname }}</a></p>
+                            </div>
+                            <div class="comments_item__text">
+                                <p>{{ i }}</p>
+                            </div>
+                            {% if i.author == request.user %}
+                                <div class="comments_item__delete" id="{{ i.id }}">
+                                    <span class="url_underline">Удалить комментарий</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Комментариев пока что нет, но вы можете стать первым</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

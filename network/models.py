@@ -1,7 +1,11 @@
+import random
+
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from pytils.translit import slugify
+from ckeditor.fields import RichTextField
+from string import ascii_lowercase
 
 
 def validate_image(image):
@@ -44,9 +48,11 @@ class User(AbstractBaseUser):
     slug = models.SlugField(max_length=20, unique=True, db_index=True, verbose_name='URL',
                             error_messages={'unique': 'Пользователь с такой же ссылкой на профиль уже существует'})
     about = models.TextField(max_length=500, verbose_name='О себе', blank=True)
-    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?', blank=True,
+    snusoman = models.ForeignKey('Snusoman', on_delete=models.PROTECT, verbose_name='Какой вы снюсоед?', blank=False,
                                  null=True)
     rank = models.ForeignKey('Rank', on_delete=models.CASCADE, verbose_name='Ранг', blank=True, null=True)
+    groups = models.ManyToManyField('Group', blank=True, verbose_name='Подписки')
+    friends = models.ManyToManyField('User', blank=True, verbose_name='Друзья')
     experience = models.IntegerField(default=0, verbose_name='Опыт')
     profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
                                     validators=[validate_image])
@@ -74,11 +80,24 @@ class User(AbstractBaseUser):
             self.slug = slugify(self.username)
         if not self.nickname:
             self.nickname = self.username
+        if not self.rank:
+            self.rank_id = 1
         super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+
+
+class FriendRequest(models.Model):
+    from_user = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='От пользователя',
+                                  related_name='friend_request_from_user')
+    to_user = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='К пользователю',
+                                related_name='friend_request_to_user')
+
+    class Meta:
+        verbose_name = 'Запросы в друзья'
+        verbose_name_plural = 'Запросы в друзья'
 
 
 class Snusoman(models.Model):
@@ -94,36 +113,84 @@ class Snusoman(models.Model):
         ordering = ['name']
 
 
-class Thread(models.Model):
+class Group(models.Model):
+    title = models.CharField(max_length=100, verbose_name='Название сообщества')
+    about = models.CharField(max_length=1000, verbose_name='Описание')
+    group_avatar = models.ImageField(upload_to='images/group_avatar/', validators=[validate_image],
+                                     verbose_name='Аватар сообщества', blank=True)
+    background_photo = models.ImageField(validators=[validate_image], upload_to='images/background_photo/',
+                                         verbose_name='Фон сообщества', blank=True)
+    slug = models.SlugField(max_length=255, unique=True, verbose_name='URL сообщества')
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    followers = models.ManyToManyField(User, blank=True, related_name='postgroup_followers', verbose_name='Подписчики')
+    posts = models.ManyToManyField('Post', blank=True, related_name='postgroup_posts', verbose_name='Посты')
+    admin = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='Администратор', blank=False)
+    moderator = models.ManyToManyField('User', blank=True, related_name='group_moderator', verbose_name='Модераторы')
+
+    def __str__(self):
+        return self.title
+
+    def has_perm(self, perm, obj=None):
+        return self.moderator
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Сообщество'
+        verbose_name_plural = 'Сообщества'
+        ordering = ['title']
+
+
+def create_unique_key():
+    result = ''
+    letters = ascii_lowercase
+    for i in range(6):
+        result += random.choice(letters)
+    return result
+
+
+class Post(models.Model):
     title = models.CharField(max_length=255, verbose_name='Заголовок')
-    content = models.CharField(max_length=1000, verbose_name='Текст поста')
+    content = RichTextField(blank=True, null=True, verbose_name='Текст')
+    unique_id = models.CharField(max_length=6, unique=True, verbose_name='Уникальный id', null=True)
     slug = models.SlugField(max_length=255, unique=True, verbose_name='URL поста')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Время обновления')
     is_important = models.BooleanField(default=False, verbose_name='Закрепить?')
     author = models.ForeignKey('User', on_delete=models.CASCADE, verbose_name='Автор')
-    likes = models.ManyToManyField('User', blank=True, related_name='thread_likes')
+    likes = models.ManyToManyField('User', blank=True, related_name='post_likes')
+    dislikes = models.ManyToManyField('User', blank=True, related_name='post_dislikes')
+    group = models.ForeignKey('Group', on_delete=models.CASCADE, verbose_name='Сообщество')
 
     def __str__(self):
         return self.title
 
     def save(self, *args, **kwargs):
-        value = self.title
-        self.slug = slugify(value)
+        unique_id = create_unique_key()
+        if not self.unique_id:
+            self.unique_id = unique_id
+        if not self.slug:
+            value = f'{self.title}-{unique_id}'
+            self.slug = slugify(value)
         super().save(*args, **kwargs)
 
     def get_likes_count(self):
         return self.likes.count()
 
+    def get_dislikes_count(self):
+        return self.dislikes.count()
+
     class Meta:
-        verbose_name = 'Тред'
-        verbose_name_plural = 'Треды'
-        ordering = ['-time_create']
+        verbose_name = 'Пост'
+        verbose_name_plural = 'Посты'
+        ordering = ['-is_important', '-time_create']
 
 
 class Comment(models.Model):
     author = models.ForeignKey('User', on_delete=models.CASCADE)
-    thread = models.ForeignKey('Thread', on_delete=models.CASCADE, related_name='comments')
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='comments')
     content = models.CharField(max_length=1000, unique=False, verbose_name='Комментарий')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата написания')
     time_update = models.DateTimeField(auto_now=True, verbose_name='Дата обновления')

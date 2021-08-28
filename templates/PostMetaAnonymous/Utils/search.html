@@ -1,0 +1,69 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+{% load class_name %}
+{% load static %}
+
+{% block content %}
+
+    <div class="container">
+        {% if not posts and not users and not groups %}
+            <p>Не удалось ничего найти по запросу: {{ request.GET.query }}</p>
+        {% endif %}
+        {% if users %}
+            <h3>Пользователи</h3>
+            {% for i in users %}
+                <div class="results column">
+                    <div class="results__row body_size_s row">
+                        <div class="results__avatar">
+                            {% if i.profile_pic %}
+                                <img class="avatar_size_l" src="{% static i.profile_pic.url %}">
+                            {% else %}
+                                <img class="avatar_size_l" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt="">
+                            {% endif %}
+                        </div>
+                        <div class="results__text">
+                            <h2><a href="{% url 'profile' i.slug %}">{{ i.nickname }}</a></h2>
+                            <p>{{ i.rank }}</p>
+                            <p><span id="author-xp">{{ i.experience }}</span> <span>xp</span></p>
+                            <p>{{ i.about }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if groups %}
+            <h3>Сообщества</h3>
+            {% for i in groups %}
+                <div class="results column">
+                    <div class="results__row body_size_s row">
+                        <div class="results__avatar">
+                            {% if i.group_avatar %}
+                                <img class="avatar_size_l" src="{% static i.group_avatar.url %}" alt="">
+                            {% endif %}
+                        </div>
+                        <div class="results__text">
+                            <h2><a href="{% url 'group' i.slug %}">{{ i.title }}</a></h2>
+                            <p>{{ i.about }}</p>
+                            <p>Подписчиков: {{ i.followers.count }}</p>
+                            <p>Количество постов: {{ i.posts.count }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% if posts %}
+            <h3>Посты</h3>
+            {% for i in posts %}
+                <div class="list">
+                    <div class="list__item">
+                        <h2><a href="{% url 'post' i.group i.slug %}">{{ i.title }}</a></h2>
+                        {% autoescape on %}
+                            <p>{{ i.content|safe|linebreaks|truncatewords:100 }}</p>
+                        {% endautoescape %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'PostMetaAnonymous/base.html' %}
+
+{% block content %}
+    <div class="login body_size_s">
+        <form action="{{ form.action }}" method="POST">
+            {% csrf_token %}
+            {% for i in form %}
+                <div class="form_column">
+                    {{ i }}
+                </div>
+            {% endfor %}
+            <div class="login_button">
+                <button type="submit" class="button">Войти</button>
+            </div>
+            <div class="error_messages">
+                {{ form.errors }}
+            </div>
+        </form>
+        <p>Уже зарегистрированы? <a class="url_underline" href="{% url 'login' %}">Войти</a></p>
+    </div>
+{% endblock %}
