@@ -23,10 +23,6 @@ AUTH_USER_MODEL = 'network.User'
 
 # Application definition
 
-CHAT_WS_SERVER_HOST = 'localhost'
-CHAT_WS_SERVER_PORT = 5002
-CHAT_WS_SERVER_PROTOCOL = 'ws'
-
 INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.admin',
@@ -36,7 +32,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'network.apps.NetworkConfig',
     'ckeditor',
-    'django_private_chat',
 ]
 
 MIDDLEWARE = [
