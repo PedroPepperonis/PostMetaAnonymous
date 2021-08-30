@@ -91,7 +91,7 @@
             <div class="friends">
                 {% if user.friends.count != 0 %}
                     <div class="friends body_size_s">
-                        <h3>Друзья</h3>
+                        <a href="{% url 'friends' user.slug %}"><h3>Друзья</h3></a>
                         <div class="friends_list">
                             {% for i in friends %}
                                 <div class="friends_list__item row" id="{{ i.id }}">

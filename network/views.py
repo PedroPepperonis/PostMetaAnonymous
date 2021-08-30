@@ -78,19 +78,19 @@ class UserPage(DetailView):
         return context
 
 
-# class FriendsListPage(ListView):
-#     model = Friend
-#     template_name = 'PostMetaAnonymous/Profile/friends.html'
-#     context_object_name = 'friends'
-#
-#     def get_queryset(self, *args, **kwargs):
-#         user = get_object_or_404(User, slug=self.kwargs['url'])
-#         return Friend.objects.friends(user)
-#
-#     def get_context_data(self, *, object_list=None, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['title'] = 'Друзья ' + str(self.request.user)
-#         return context
+class FriendsListPage(ListView):
+    model = User
+    template_name = 'PostMetaAnonymous/Profile/friends.html'
+    context_object_name = 'user'
+
+    def get_queryset(self, *args, **kwargs):
+        user = get_object_or_404(User, slug=self.kwargs['url'])
+        return user
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Друзья ' + str(self.request.user)
+        return context
 
 
 class GroupPage(DetailView):

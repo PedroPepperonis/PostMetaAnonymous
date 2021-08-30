@@ -13,7 +13,7 @@ urlpatterns = [
     path('profile/edit/', login_required(EditPage.as_view()), name='edit_profile'),
     path('profile/<slug:url>/', login_required(UserPage.as_view()), name='profile'),
     path('profile/<slug:url>/posts/', login_required(UserPosts.as_view()), name='posts'),
-    #path('profile/<slug:url>/friends/', FriendsListPage.as_view(), name='friends'),
+    path('profile/<slug:url>/friends/', FriendsListPage.as_view(), name='friends'),
 
     path('new_post/', login_required(NewPost.as_view()), name='new_post'),
     path('post/<str:group>/<slug:url>/', login_required(ShowPost.as_view()), name='post'),

@@ -1,13 +1,37 @@
 {% extends 'PostMetaAnonymous/base.html' %}
+{% load static %}
 
 {% block content %}
 
-    <h1>Friends page</h1>
-    {% for i in friends %}
-
-        <a href="{% url 'profile' i.slug %}">{{ i.nickname }}</a>
-
-    {% endfor %}
-
+    <div class="container">
+        <div class="friends">
+            {% if user.friends.count != 0 %}
+                <div class="friends body_size_s">
+                    <h3>Друзья</h3>
+                    <div class="friends_list">
+                        {% for i in user.friends.all %}
+                            <div class="friends_list__item row" id="{{ i.id }}">
+                                <div class="friend_avatar">
+                                    {% if i.profile_pic %}
+                                        <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{% static i.profile_pic.url %}" alt=""></a>
+                                    {% else %}
+                                        <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt=""></a>
+                                    {% endif %}
+                                </div>
+                                <div class="friend_nickname">
+                                    <p>
+                                        <a class="url_underline" href="{% url 'profile' i.slug %}">{{ i.nickname }}</a>
+                                        {% if request.user == user %}
+                                            <span class="delete_friend url_underline" id="{{ i.id }}">удалить из друзей</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 
 {% endblock %}
