@@ -52,7 +52,7 @@ class HomePage(ListView):
 
 class UserPage(DetailView):
     model = User
-    template_name = 'PostMetaAnonymous/Profile/../templates/PostMetaAnonymous/profile.html'
+    template_name = 'PostMetaAnonymous/profile/profile.html'
     context_object_name = 'user'
 
     def get_object(self, queryset=None):
