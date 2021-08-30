@@ -1,0 +1,593 @@
+body {
+    padding: 0;
+    margin: 0;
+    font-size: 16px;
+    color: black;
+    font-family: "Calibri";
+    background-color: #DAE0E6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}
+
+p {
+    margin: 0;
+}
+
+ul, li {
+    display: block;
+    padding: 0;
+    margin: 0;
+}
+
+.body_size_s {
+    width: 25%;
+    background-color: #FFFFFF;
+    border: 1px #DADCE0 solid;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.body_size_m {
+    width: 50%;
+    background-color: #FFFFFF;
+    border: 1px #DADCE0 solid;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.body_size_l {
+    width: 75%;
+    background-color: #FFFFFF;
+    border: 1px #DADCE0 solid;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.body_size_xl {
+    width: 100%;
+    background-color: #FFFFFF;
+    border: 1px #DADCE0 solid;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.body_header {
+    background-color: #9EA2A6;
+    height: 5%;
+    width: 100%;
+}
+
+.avatar_size_s {
+    width: 50px;
+    height: 50px;
+    border: 1px #000000 solid;
+    border-radius: 100px;
+}
+
+.avatar_size_m {
+    width: 75px;
+    height: 75px;
+    border: 1px #000000 solid;
+    border-radius: 100px;
+}
+
+.avatar_size_l {
+    width: 100px;
+    height: 100px;
+    border: 1px #000000 solid;
+    border-radius: 100px;
+}
+
+.avatar_size_xl {
+    width: 150px;
+    height: 150px;
+    border: 1px #000000 solid;
+    border-radius: 100px;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    width: 1350px;
+    margin: 0 auto;
+}
+
+.header {
+    background-color: #FFFFFF;
+}
+
+.header hr {
+    border: none;
+    background-color: #000000;
+    height: 1px;
+    margin: 0;
+}
+
+.logo {
+    font-size: 13px;
+    margin-left: 10px;
+    margin-right: 40px;
+}
+
+.nav {
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    align-items: center;
+}
+
+
+/* Форма для поиска */
+.search-form {
+    display: flex;
+}
+
+.search-form__input {
+    padding: 12px;
+    background-color: #DADCE0;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.9s ease;
+    min-width: 250px;
+}
+
+.search-form__input:focus {
+    background-color: #FFFFFF;
+    border: #DADCE0 1px solid;
+    transition: all 0.9s ease;
+    outline: none;
+}
+
+.search-form__button {
+    padding: 12px;
+    background-color: #FFFFFF;
+    border: 1px #DADCE0 solid;
+    border-radius: 5px;
+    min-width: 100px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.search-form__button:hover {
+    background-color: #DAE0E6;
+    transition: all 0.9s ease;
+}
+
+/* Кнопка выпадающего списка */
+.dropdown_menu__button {
+    background-color: #FFFFFF;
+    color: black;
+    padding: 8px;
+    font-size: 15px;
+    border: #DADCE0 1px solid;
+    border-radius: 6px;
+    min-width: 192px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.dropdown_menu__button:focus {
+    background-color: #f1f1f1;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Контейнер <div> - необходим для размещения выпадающего содержимого */
+.dropdown_menu {
+    position: relative;
+    display: inline-block;
+    margin-left: auto;
+}
+
+/* Выпадающее содержимое (скрыто по умолчанию) */
+.dropdown_menu__content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border: 1px #DADCE0 solid;
+    border-top: none;
+    z-index: 1;
+    min-width: 190px;
+}
+
+/* Ссылки внутри выпадающего списка */
+.dropdown_menu__content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Изменение цвета выпадающих ссылок при наведении курсора */
+.dropdown_menu__content a:hover {background-color: #ddd}
+
+/* Показать выпадающее меню (используйте JS, чтобы добавить этот класс .dropdown-content содержимого, когда пользователь нажимает на кнопку выпадающего списка) */
+.show {display:block;}
+
+
+/* Главная страница на которой находятся недавно опубликованные посты */
+.list {
+    display: flex;
+    flex-direction: column;
+    margin: 10px 0;
+}
+
+.list__item {
+    margin: 0 0 10px 0;
+    padding: 10px 10px 10px 10px;
+    border: #CCCCCC 1px solid;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    overflow: hidden;
+    width: 640px;
+    transition: all 0.5s ease;
+}
+
+.list__item:hover {
+    transition: all 0.5s ease;
+    border: #000 1px solid;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+.list__item img {
+    width: 25%;
+}
+
+.list__title {
+    margin: 4px 0;
+    font-weight: normal;
+}
+
+.list__content {
+    margin: 4px 0;
+    max-height: 95px;
+    overflow: hidden;
+}
+
+.url_underline:hover {
+    border-bottom: 1px #000000 solid;
+    cursor: pointer;
+}
+
+
+/* Страница с постом */
+.post {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 10px 0 0 0;
+}
+
+.post_content {
+    padding: 0 10px;
+    width: 100%;
+}
+
+.post_content__header {
+    font-size: 15px;
+}
+
+.post_content__title {
+    margin: 0 0 10px 0;
+    font-size: 13px;
+}
+
+.post_content__text {
+    font-size: 17px;
+}
+
+.post_content__text a {
+    color: #24a0ed;
+}
+
+.post_likes__likes_count {
+    text-align: center;
+}
+
+.post_details {
+    margin-left: 5px;
+}
+
+.post_details__group_info {
+    margin: 10px 0 0 10px;
+    width: 100%;
+}
+
+.comments_list {
+    /*margin: 10px 0;*/
+}
+
+.comments_item {
+    margin: 10px 0 5px 0;
+    align-items: center;
+}
+
+.comments_item__column {
+    margin: 0 10px;
+}
+
+.comments_item__nickname {
+    font-size: 17px;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+}
+
+.comments_item__delete {
+    font-size: 13px;
+    margin: 5px 0 0 0;
+}
+
+.comment_form {
+    margin: 10px 0 0 0;
+    width: 50%;
+}
+
+.comment_content {
+    resize: none;
+    border-radius: 10px;
+    background-color: #FFFFFF;
+    height: 50px;
+    width: 100%;
+    padding: 10px;
+    border: 1px #DADCE0 solid;
+    font-size: 15px;
+    transition: all 0.5s ease;
+}
+
+.comment_content:focus {
+    outline: none;
+    transition: all 0.5s ease;
+    border: #000000 1px solid;
+}
+
+.comment_form__button {
+    padding: 5px;
+    text-align: right;
+}
+
+.like_button {
+    height: 25px;
+    width: 25px;
+}
+
+.like_button:hover {
+    cursor: pointer;
+}
+
+.profile {
+    align-items: flex-start;
+    margin: 10px 0 0 0;
+}
+
+.profile__left_side {
+    width: 50%;
+    text-align: center;
+}
+
+.profile__about {
+    background-color: #DAE0E6;
+    padding: 10px;
+    border-radius: 10px;
+    word-wrap: break-word;
+    margin: 10px 0;
+}
+
+.profile__right_side {
+    width: 50%;
+}
+
+.friend_requests {
+    /*margin: 0 10px;*/
+}
+
+.friend_requests__title {
+    margin-bottom: 5px;
+}
+
+.friend_requests_list__avatar {
+    margin: 5px 10px;
+}
+
+.friend_requests_list {
+    align-items: center;
+}
+
+.friend_requests_item__accept {
+    margin: 5px 0 0 0;
+}
+
+.friend_requests_item__decline {
+    margin: 5px 5px;
+}
+
+.friends {
+    margin-top: 10px;
+}
+
+.friends_list__item {
+    align-items: center;
+}
+
+.friend_nickname {
+    margin: 0 10px;
+    width: 100%;
+}
+
+.group_header__background {
+    width: 100%;
+    height: 192px;
+}
+
+.group_info {
+    background-color: #FFFFFF;
+    height: 100px;
+    align-items: center;
+    padding: 10px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.group_info__title {
+    font-size: 15px;
+    margin: 0 10px;
+}
+
+.group_info__subscribe_button {
+    margin: 0 10px;
+}
+
+.group_info__edit_group_button {
+    margin: 0 10px;
+}
+
+.group_details {
+    width: 50%;
+}
+
+.group_details__column {
+    margin: 10px 0 10px 10px;
+}
+
+.group_admin {
+    align-items: center;
+}
+
+.group_admin__username {
+    width: 100%;
+    margin: 0 10px;
+}
+
+.title {
+    font-size: 15px;
+}
+
+.results {
+    margin: 10px 0;
+}
+
+.results__text {
+    margin: 0 0 0 10px;
+    width: 100%;
+}
+
+.form {
+    width: 62%;
+}
+
+.form_column {
+    margin: 10px 0;
+}
+
+.form_column__title {
+    padding: 12px;
+    border: #DADCE0 1px solid;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    width: 97%;
+    transition: all 0.3s ease;
+}
+
+.form_column__title:focus {
+    border: #000000 0.5px solid;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.form_column__select {
+    border: #DADCE0 1px solid;
+    border-radius: 5px;
+    padding: 12px;
+    outline: none;
+}
+
+.form_column__textarea {
+    transition: all 0.3s ease;
+    padding: 10px;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    border: #DADCE0 1px solid;
+    width: 97%;
+    resize: none;
+}
+
+.form_column__textarea:focus {
+    transition: all 0.3s ease;
+    outline: none;
+    border: #000000 1px solid;
+}
+
+.button {
+    background-color: #5E4388;
+    color: #FFFFFF;
+    height: 30px;
+    text-align: center;
+    border-radius: 13px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.5s ease;
+}
+
+.button_color_green {
+    background-color: #46d160;
+    color: #000000;
+}
+
+.button:hover {
+    transition: all 0.5s ease;
+    background-color: #5E59B2;
+}
+
+.index {
+    margin: 0 auto;
+}
+
+.login {
+    margin: 10% auto;
+    text-align: center;
+}
+
+.login_button {
+    margin: 10px 0;
+}
+
+.form_column__field {
+    padding: 12px;
+    border: #DADCE0 1px solid;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    width: 90%;
+    transition: all 0.3s ease;
+    margin: 10px 0;
+}
+
+.form_column__field:focus {
+    border: #000000 0.5px solid;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+/*.register {*/
+/*    width: 50%;*/
+/*}*/
+
+.error_messages {
+    margin: 10px 0;
+}

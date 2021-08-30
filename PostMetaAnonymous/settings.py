@@ -1,8 +1,8 @@
 import os
 import os.path
 from pathlib import Path
+import psycopg2
 
-import dj_database_url
 import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -16,9 +16,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1:8000']
 
 AUTH_USER_MODEL = 'network.User'
 
@@ -77,7 +77,7 @@ DATABASES = {
         'USER': os.getenv('USER'),
         'PASSWORD': os.getenv('PASSWORD'),
         'HOST': os.getenv('HOST'),
-        'PORT': os.getenv('PORT'),
+        'PORT': int(os.getenv('PORT')),
     }
 }
 
