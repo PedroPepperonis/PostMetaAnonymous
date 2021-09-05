@@ -177,5 +177,5 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 django_heroku.settings(locals())
 
 DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
-DROPBOX_OAUTH2_TOKEN = 'sl.A36j8L_aXrilAHSSaj4VDv-AUzZXc2zJz6zEvoek7tEnxjCQV9zxldA38x5aou4-9oCYKDNocXQiW3YrnH18ukn4o5VIAwaQZPqKpC9vljQLPXzJA-KePx1m5t5fDVdtkYZ634ecLDE'
+DROPBOX_OAUTH2_TOKEN = os.getenv('DROPBOX_OAUTH2_TOKEN')
 DROPBOX_ROOT_PATH = '/'
