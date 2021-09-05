@@ -54,7 +54,7 @@ class User(AbstractBaseUser):
     groups = models.ManyToManyField('Group', blank=True, verbose_name='Подписки')
     friends = models.ManyToManyField('User', blank=True, verbose_name='Друзья')
     experience = models.IntegerField(default=0, verbose_name='Опыт')
-    profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='images/profile_pic/',
+    profile_pic = models.ImageField(blank=True, verbose_name='Аватар', upload_to='PostMetaAnonymousStorage/profile_pic/',
                                     validators=[validate_image])
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -116,9 +116,9 @@ class Snusoman(models.Model):
 class Group(models.Model):
     title = models.CharField(max_length=100, verbose_name='Название сообщества')
     about = models.CharField(max_length=1000, verbose_name='Описание')
-    group_avatar = models.ImageField(upload_to='images/group_avatar/', validators=[validate_image],
+    group_avatar = models.ImageField(upload_to='PostMetaAnonymousStorage/profile_pic/', validators=[validate_image],
                                      verbose_name='Аватар сообщества', blank=True)
-    background_photo = models.ImageField(validators=[validate_image], upload_to='images/background_photo/',
+    background_photo = models.ImageField(validators=[validate_image], upload_to='PostMetaAnonymousStorage/profile_pic/',
                                          verbose_name='Фон сообщества', blank=True)
     slug = models.SlugField(max_length=255, unique=True, verbose_name='URL сообщества')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
@@ -143,10 +143,10 @@ class Group(models.Model):
         ordering = ['title']
 
 
-def create_unique_key():
+def create_unique_key(length):
     result = ''
     letters = ascii_lowercase
-    for i in range(6):
+    for i in range(length):
         result += random.choice(letters)
     return result
 
@@ -168,7 +168,7 @@ class Post(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        unique_id = create_unique_key()
+        unique_id = create_unique_key(6)
         if not self.unique_id:
             self.unique_id = unique_id
         if not self.slug:

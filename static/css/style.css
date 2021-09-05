@@ -591,3 +591,26 @@ ul, li {
 .error_messages {
     margin: 10px 0;
 }
+
+.chat__left {
+    text-align: left;
+}
+
+.chat__right {
+    text-align: right;
+}
+
+.message_box {
+    display: inline-block;
+    padding: 5px;
+    border-radius: 7px;
+    background-color: #5E4388;
+    color: #FFFFFF;
+    width: auto;
+    margin: 2px 0;
+}
+
+.message_box_black {
+    background-color: #182533;
+    color: #FFFFFF;
+}

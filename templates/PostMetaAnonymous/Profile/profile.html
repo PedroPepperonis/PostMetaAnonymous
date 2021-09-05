@@ -1,5 +1,4 @@
 {% extends 'PostMetaAnonymous/base.html' %}
-{% load static %}
 
 {% block content %}
 
@@ -10,9 +9,9 @@
                     <div class="profile__left_side">
                         <div class="profile__avatar">
                             {% if user.profile_pic %}
-                                <img class="avatar_size_xl" src="{% static user.profile_pic.url %}" alt="">
+                                <img class="avatar_size_xl" src="{{ user.profile_pic.url }}" alt="">
                             {% else %}
-                                <img class="avatar_size_xl" src="{% static 'images/profile_pic/no-avatar.png' %}" alt="">
+                                <img class="avatar_size_xl" src="https://vyshnevyi-partners.com/wp-content/uploads/2016/12/no-avatar.png" alt="">
                             {% endif %}
                         </div>
                         <div class="profile__nickname">
@@ -62,15 +61,15 @@
                                         <div class="friends_requests_list__item_row row" id="{{ i.id }}">
                                             <div class="friend_requests_list__avatar">
                                                 {% if i.profile_pic %}
-                                                    <img class="avatar_size_m" src="{% static i.profile_pic.url %}" alt="">
+                                                    <img class="avatar_size_m" src="{{ i.profile_pic.url }}" alt="">
                                                 {% else %}
-                                                    <img class="avatar_size_m" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt="">
+                                                    <img class="avatar_size_m" src="https://vyshnevyi-partners.com/wp-content/uploads/2016/12/no-avatar.png" alt="">
                                                 {% endif %}
                                             </div>
                                             <div class="friend_requests_item__column column">
                                                 <div class="friend_requests_item__row">
                                                     <div class="friend_requests_list__nickname">
-                                                        <a class="url_underline" href="{% url 'profile' i.from_user.slug %}"><span>{{ i.from_user.nickname }}</span></a>
+{#                                                        <a class="url_underline" href="{% url 'profile' i.from_user.slug %}"><span>{{ i.from_user.nickname }}</span></a>#}
                                                     </div>
                                                 </div>
                                                 <div class="friend_requests_item__row row">
@@ -97,9 +96,9 @@
                                 <div class="friends_list__item row" id="{{ i.id }}">
                                     <div class="friend_avatar">
                                         {% if i.profile_pic %}
-                                            <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{% static i.profile_pic.url %}" alt=""></a>
+                                            <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{{ i.profile_pic.url }}" alt=""></a>
                                         {% else %}
-                                            <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="{% static 'images/images/profile_pic/no-avatar.png' %}" alt=""></a>
+                                            <a href="{% url 'profile' i.slug %}"><img class="avatar_size_s" src="https://vyshnevyi-partners.com/wp-content/uploads/2016/12/no-avatar.png" alt=""></a>
                                         {% endif %}
                                     </div>
                                     <div class="friend_nickname">

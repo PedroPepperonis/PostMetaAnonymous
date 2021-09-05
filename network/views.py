@@ -238,7 +238,6 @@ class EditPage(UpdateView):
     def get_object(self, queryset=None):
         return self.request.user
 
-    # return reverse_lazy('group', args=[self.kwargs['url']])
     def get_success_url(self):
         return reverse_lazy('profile', args=[self.request.user.slug])
 

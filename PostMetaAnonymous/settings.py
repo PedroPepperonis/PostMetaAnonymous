@@ -33,6 +33,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'network.apps.NetworkConfig',
     'ckeditor',
+    'channels',
+    'chat',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'PostMetaAnonymous.wsgi.application'
+ASGI_APPLICATION = "PostMetaAnonymous.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -79,6 +83,25 @@ DATABASES = {
         'HOST': os.getenv('HOST'),
         'PORT': int(os.getenv('PORT')),
     }
+}
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [('127.0.0.1', 6379)],
+#         }
+#     }
+# }
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+        },
+        "ROUTING": "chat.routing.channel_routing",
+    },
 }
 
 CKEDITOR_CONFIGS = {
@@ -153,3 +176,7 @@ STATICFILES_DIRS = [
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 django_heroku.settings(locals())
+
+DEFAULT_FILE_STORAGE = 'storages.backends.dropbox.DropBoxStorage'
+DROPBOX_OAUTH2_TOKEN = 'sl.A36j8L_aXrilAHSSaj4VDv-AUzZXc2zJz6zEvoek7tEnxjCQV9zxldA38x5aou4-9oCYKDNocXQiW3YrnH18ukn4o5VIAwaQZPqKpC9vljQLPXzJA-KePx1m5t5fDVdtkYZ634ecLDE'
+DROPBOX_ROOT_PATH = '/'
